@@ -9,6 +9,12 @@ export type CreateCouponProps = {
   expiresAt?: Date;
 };
 
+type DiscountProps = {
+  discountType: DiscountType;
+  discountValue: number;
+  minOrderAmount?: number;
+};
+
 export class Coupon {
   private constructor(
     readonly id: string,
@@ -23,7 +29,21 @@ export class Coupon {
 
   static create(props: CreateCouponProps): Coupon {
     const code = props.code.trim().toUpperCase();
+    Coupon.assertDiscountInvariants(props);
 
+    return new Coupon(
+      crypto.randomUUID(),
+      code,
+      props.discountType,
+      props.discountValue,
+      "ACTIVE",
+      0,
+      props.minOrderAmount,
+      props.expiresAt,
+    );
+  }
+
+  private static assertDiscountInvariants(props: DiscountProps): void {
     if (props.discountType === "PERCENTAGE") {
       if (
         !Number.isInteger(props.discountValue) ||
@@ -44,16 +64,5 @@ export class Coupon {
         );
       }
     }
-
-    return new Coupon(
-      crypto.randomUUID(),
-      code,
-      props.discountType,
-      props.discountValue,
-      "ACTIVE",
-      0,
-      props.minOrderAmount,
-      props.expiresAt,
-    );
   }
 }
