@@ -10,4 +10,8 @@ describe("isCouponExpired", () => {
       ),
     ).toBe(true);
   });
+
+  it("returns false when there is no expiration date", () => {
+    expect(isCouponExpired(null)).toBe(false);
+  });
 });
