@@ -9,7 +9,7 @@ export type CreateCouponProps = {
   expiresAt?: Date;
 };
 
-type DiscountProps = {
+export type ChangeDiscountProps = {
   discountType: DiscountType;
   discountValue: number;
   minOrderAmount?: number;
@@ -17,26 +17,56 @@ type DiscountProps = {
 
 export class Coupon {
   private _status: CouponStatus;
+  private _discountType: DiscountType;
+  private _discountValue: number;
+  private _minOrderAmount: number | undefined;
 
   private constructor(
     readonly id: string,
     readonly code: string,
-    readonly discountType: DiscountType,
-    readonly discountValue: number,
+    discountType: DiscountType,
+    discountValue: number,
     status: CouponStatus,
     readonly usageCount: number,
-    readonly minOrderAmount: number | undefined,
+    minOrderAmount: number | undefined,
     readonly expiresAt: Date | undefined,
   ) {
+    this._discountType = discountType;
+    this._discountValue = discountValue;
     this._status = status;
+    this._minOrderAmount = minOrderAmount;
   }
 
   get status(): CouponStatus {
     return this._status;
   }
 
+  get discountType(): DiscountType {
+    return this._discountType;
+  }
+
+  get discountValue(): number {
+    return this._discountValue;
+  }
+
+  get minOrderAmount(): number | undefined {
+    return this._minOrderAmount;
+  }
+
   deactivate(): void {
     this._status = "INACTIVE";
+  }
+
+  changeDiscount(props: ChangeDiscountProps): void {
+    if (this.usageCount > 0) {
+      throw new Error("Discount type and value cannot change after the coupon has been used");
+    }
+
+    Coupon.assertDiscountInvariants(props);
+
+    this._discountType = props.discountType;
+    this._discountValue = props.discountValue;
+    this._minOrderAmount = props.minOrderAmount;
   }
 
   static create(props: CreateCouponProps): Coupon {
@@ -58,7 +88,7 @@ export class Coupon {
     );
   }
 
-  private static assertDiscountInvariants(props: DiscountProps): void {
+  private static assertDiscountInvariants(props: ChangeDiscountProps): void {
     if (props.discountType === "PERCENTAGE") {
       if (
         !Number.isInteger(props.discountValue) ||
