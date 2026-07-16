@@ -122,4 +122,14 @@ describe("Coupon", () => {
 
     expect(coupon.isExpired(new Date("2020-01-02T00:00:00.000Z"))).toBe(true);
   });
+
+  it("is not expired when there is no expiration date", () => {
+    const coupon = Coupon.create({
+      code: "FOREVER",
+      discountType: "PERCENTAGE",
+      discountValue: 10,
+    });
+
+    expect(coupon.isExpired(new Date("2030-01-01T00:00:00.000Z"))).toBe(false);
+  });
 });
