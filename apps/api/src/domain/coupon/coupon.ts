@@ -24,6 +24,16 @@ export class Coupon {
   static create(props: CreateCouponProps): Coupon {
     const code = props.code.trim().toUpperCase();
 
+    if (props.discountType === "PERCENTAGE") {
+      if (
+        !Number.isInteger(props.discountValue) ||
+        props.discountValue < 1 ||
+        props.discountValue > 100
+      ) {
+        throw new Error("Percentage discount value must be an integer between 1 and 100");
+      }
+    }
+
     return new Coupon(
       crypto.randomUUID(),
       code,
