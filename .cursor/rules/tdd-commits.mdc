@@ -1,0 +1,34 @@
+---
+description: TDD commits em fatias verticais sem co-author do Cursor
+alwaysApply: true
+---
+
+# Commits TDD (obrigatório neste repositório)
+
+## Ciclo por fatia (nessa ordem, 1 commit cada)
+
+1. **test:** adiciona só o teste que falha (red)
+2. **feat:** implementação mínima para o teste passar (green)
+3. **refactor:** só se houver limpeza real, sem mudar comportamento
+
+Não agrupar teste + implementação no mesmo commit. Não escrever todos os testes antes do código.
+
+## Mensagens
+
+Usar prefixos claros, no estilo:
+
+- `test: rejeita percentual fora de 1..100`
+- `feat: valida percentual entre 1 e 100`
+- `refactor: extrai assertDiscountInvariants no Coupon`
+
+## Co-author
+
+**Nunca** incluir `Co-authored-by: Cursor` (nem qualquer trailer de co-author do Agent).
+
+Ao commitar via shell, a mensagem deve ser só o texto do commit (HEREDOC), sem trailers de AI.
+
+Há um hook local `.git/hooks/commit-msg` que remove trailers do Cursor se forem injetados — não desabilitar.
+
+## Escopo dos testes de negócio
+
+Regras de domínio/caso de uso: testar pela interface pública, sem banco e sem HTTP. HTTP/UI só depois, também em fatias test → feat.
