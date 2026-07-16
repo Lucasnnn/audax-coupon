@@ -15,6 +15,17 @@ export type ChangeDiscountProps = {
   minOrderAmount?: number;
 };
 
+export type ReconstituteCouponProps = {
+  id: string;
+  code: string;
+  discountType: DiscountType;
+  discountValue: number;
+  status: CouponStatus;
+  usageCount: number;
+  minOrderAmount?: number;
+  expiresAt?: Date;
+};
+
 export class Coupon {
   private _status: CouponStatus;
   private _discountType: DiscountType;
@@ -57,6 +68,10 @@ export class Coupon {
     this._status = "INACTIVE";
   }
 
+  activate(): void {
+    this._status = "ACTIVE";
+  }
+
   changeDiscount(props: ChangeDiscountProps): void {
     if (this.usageCount > 0) {
       throw new Error("Discount type and value cannot change after the coupon has been used");
@@ -83,6 +98,19 @@ export class Coupon {
       props.discountValue,
       "ACTIVE",
       0,
+      props.minOrderAmount,
+      props.expiresAt,
+    );
+  }
+
+  static reconstitute(props: ReconstituteCouponProps): Coupon {
+    return new Coupon(
+      props.id,
+      props.code,
+      props.discountType,
+      props.discountValue,
+      props.status,
+      props.usageCount,
       props.minOrderAmount,
       props.expiresAt,
     );
