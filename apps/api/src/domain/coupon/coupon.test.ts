@@ -26,4 +26,14 @@ describe("Coupon", () => {
       }),
     ).toThrow(/percentage/i);
   });
+
+  it("rejects a fixed coupon without a min order amount", () => {
+    expect(() =>
+      Coupon.create({
+        code: "SAVE15",
+        discountType: "FIXED",
+        discountValue: 1500,
+      }),
+    ).toThrow(/min order amount/i);
+  });
 });
