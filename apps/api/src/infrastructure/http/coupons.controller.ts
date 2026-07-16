@@ -49,7 +49,7 @@ export class CouponsController {
   ) {
     const coupon = await this.createCoupon.execute({
       ...body,
-      expiresAt: body.expiresAt ? new Date(body.expiresAt) : undefined,
+      expiresAt: parseExpiresAt(body.expiresAt),
     });
     return this.toResponse(coupon);
   }
@@ -121,4 +121,8 @@ export class CouponsController {
       expiresAt: coupon.expiresAt ? coupon.expiresAt.toISOString() : null,
     };
   }
+}
+
+function parseExpiresAt(value?: string): Date | undefined {
+  return value ? new Date(value) : undefined;
 }
