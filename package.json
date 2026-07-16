@@ -4,7 +4,10 @@
   "packageManager": "pnpm@9.15.0",
   "scripts": {
     "test": "turbo run test",
-    "test:api": "pnpm --filter @audax/api test"
+    "test:api": "pnpm --filter @audax/api test",
+    "dev": "turbo run dev --parallel",
+    "dev:api": "pnpm --filter @audax/api dev",
+    "dev:web": "pnpm --filter @audax/web dev"
   },
   "devDependencies": {
     "turbo": "^2.5.4",
