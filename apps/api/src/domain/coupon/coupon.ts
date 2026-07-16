@@ -31,6 +31,7 @@ export class Coupon {
   private _discountType: DiscountType;
   private _discountValue: number;
   private _minOrderAmount: number | undefined;
+  private _expiresAt: Date | undefined;
 
   private constructor(
     readonly id: string,
@@ -40,12 +41,13 @@ export class Coupon {
     status: CouponStatus,
     readonly usageCount: number,
     minOrderAmount: number | undefined,
-    readonly expiresAt: Date | undefined,
+    expiresAt: Date | undefined,
   ) {
     this._discountType = discountType;
     this._discountValue = discountValue;
     this._status = status;
     this._minOrderAmount = minOrderAmount;
+    this._expiresAt = expiresAt;
   }
 
   get status(): CouponStatus {
@@ -64,6 +66,10 @@ export class Coupon {
     return this._minOrderAmount;
   }
 
+  get expiresAt(): Date | undefined {
+    return this._expiresAt;
+  }
+
   deactivate(): void {
     this._status = "INACTIVE";
   }
@@ -73,7 +79,11 @@ export class Coupon {
   }
 
   isExpired(now = new Date()): boolean {
-    return this.expiresAt !== undefined && this.expiresAt.getTime() <= now.getTime();
+    return this._expiresAt !== undefined && this._expiresAt.getTime() <= now.getTime();
+  }
+
+  changeExpiration(expiresAt: Date | undefined): void {
+    this._expiresAt = expiresAt;
   }
 
   changeDiscount(props: ChangeDiscountProps): void {
