@@ -72,6 +72,10 @@ export class Coupon {
     this._status = "ACTIVE";
   }
 
+  isExpired(now = new Date()): boolean {
+    return this.expiresAt !== undefined && this.expiresAt.getTime() <= now.getTime();
+  }
+
   changeDiscount(props: ChangeDiscountProps): void {
     if (this.usageCount > 0) {
       throw new Error("Discount type and value cannot change after the coupon has been used");
