@@ -69,4 +69,22 @@ describe("Coupon", () => {
 
     expect(coupon.status).toBe("INACTIVE");
   });
+
+  it("allows changing discount type and value while usage count is zero", () => {
+    const coupon = Coupon.create({
+      code: "FLEX",
+      discountType: "PERCENTAGE",
+      discountValue: 10,
+    });
+
+    coupon.changeDiscount({
+      discountType: "FIXED",
+      discountValue: 2000,
+      minOrderAmount: 2000,
+    });
+
+    expect(coupon.discountType).toBe("FIXED");
+    expect(coupon.discountValue).toBe(2000);
+    expect(coupon.minOrderAmount).toBe(2000);
+  });
 });
