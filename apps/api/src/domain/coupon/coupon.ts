@@ -29,6 +29,9 @@ export class Coupon {
 
   static create(props: CreateCouponProps): Coupon {
     const code = props.code.trim().toUpperCase();
+    if (code.length === 0) {
+      throw new Error("Coupon code must not be empty");
+    }
     Coupon.assertDiscountInvariants(props);
 
     return new Coupon(
