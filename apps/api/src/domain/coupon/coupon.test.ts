@@ -47,4 +47,14 @@ describe("Coupon", () => {
       }),
     ).toThrow(/min order amount/i);
   });
+
+  it("rejects an empty coupon code", () => {
+    expect(() =>
+      Coupon.create({
+        code: "   ",
+        discountType: "PERCENTAGE",
+        discountValue: 10,
+      }),
+    ).toThrow(/coupon code/i);
+  });
 });
