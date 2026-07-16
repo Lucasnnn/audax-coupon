@@ -73,4 +73,23 @@ describe("Coupons HTTP", () => {
     expect(response.body.page).toBe(1);
     expect(response.body.pageSize).toBe(1);
   });
+
+  it("updates a coupon status", async () => {
+    const created = await request(app.getHttpServer())
+      .post("/coupons")
+      .send({ code: "UPD", discountType: "PERCENTAGE", discountValue: 10 })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .patch(`/coupons/${created.body.id}`)
+      .send({ status: "INACTIVE" })
+      .expect(200);
+
+    const response = await request(app.getHttpServer())
+      .get(`/coupons/${created.body.id}`)
+      .expect(200);
+
+    expect(response.body.status).toBe("INACTIVE");
+    expect(response.body.code).toBe("UPD");
+  });
 });
