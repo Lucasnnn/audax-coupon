@@ -39,4 +39,22 @@ describe("CreateCouponUseCase", () => {
       }),
     ).rejects.toThrow(/coupon code/i);
   });
+
+  it("preserves expiration date on create", async () => {
+    const repository = new InMemoryCouponRepository();
+    const createCoupon = new CreateCouponUseCase(repository);
+    const expiresAt = new Date("2026-12-31T23:59:00.000Z");
+
+    const created = await createCoupon.execute({
+      code: "DATED",
+      discountType: "PERCENTAGE",
+      discountValue: 10,
+      expiresAt,
+    });
+
+    const found = await repository.findById(created.id);
+
+    expect(found?.expiresAt).toEqual(expiresAt);
+    expect(found?.isExpired(new Date("2027-01-01T00:00:00.000Z"))).toBe(true);
+  });
 });
