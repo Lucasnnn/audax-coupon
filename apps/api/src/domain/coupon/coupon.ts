@@ -34,6 +34,12 @@ export class Coupon {
       }
     }
 
+    if (props.discountType === "FIXED") {
+      if (props.minOrderAmount === undefined) {
+        throw new Error("Fixed discount requires a min order amount");
+      }
+    }
+
     return new Coupon(
       crypto.randomUUID(),
       code,
