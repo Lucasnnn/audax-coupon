@@ -16,16 +16,28 @@ type DiscountProps = {
 };
 
 export class Coupon {
+  private _status: CouponStatus;
+
   private constructor(
     readonly id: string,
     readonly code: string,
     readonly discountType: DiscountType,
     readonly discountValue: number,
-    readonly status: CouponStatus,
+    status: CouponStatus,
     readonly usageCount: number,
     readonly minOrderAmount: number | undefined,
     readonly expiresAt: Date | undefined,
-  ) {}
+  ) {
+    this._status = status;
+  }
+
+  get status(): CouponStatus {
+    return this._status;
+  }
+
+  deactivate(): void {
+    this._status = "INACTIVE";
+  }
 
   static create(props: CreateCouponProps): Coupon {
     const code = props.code.trim().toUpperCase();
