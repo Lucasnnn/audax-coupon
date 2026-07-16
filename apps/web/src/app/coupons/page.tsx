@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import type { CouponDto, DiscountType } from "@audax/contracts";
 import { couponsApi } from "@/lib/coupons-api";
+import { isCouponExpired } from "@/lib/coupon-expiration";
 import styles from "./coupons.module.css";
 
 type FormState = {
@@ -10,6 +11,7 @@ type FormState = {
   discountType: DiscountType;
   discountValue: string;
   minOrderAmount: string;
+  expiresAt: string;
 };
 
 const emptyForm: FormState = {
@@ -17,6 +19,7 @@ const emptyForm: FormState = {
   discountType: "PERCENTAGE",
   discountValue: "",
   minOrderAmount: "",
+  expiresAt: "",
 };
 
 export default function CouponsPage() {
@@ -75,6 +78,10 @@ export default function CouponsPage() {
         discountType: form.discountType,
         discountValue,
         minOrderAmount,
+        expiresAt:
+          form.expiresAt.trim() === ""
+            ? undefined
+            : new Date(form.expiresAt).toISOString(),
       });
 
       setForm(emptyForm);
@@ -175,6 +182,17 @@ export default function CouponsPage() {
             />
           </label>
 
+          <label>
+            Expira em
+            <input
+              type="datetime-local"
+              value={form.expiresAt}
+              onChange={(e) =>
+                setForm({ ...form, expiresAt: e.target.value })
+              }
+            />
+          </label>
+
           <button type="submit" disabled={submitting}>
             {submitting ? "Salvando..." : "Criar cupom"}
           </button>
@@ -188,7 +206,10 @@ export default function CouponsPage() {
           <p className={styles.muted}>Nenhum cupom ainda.</p>
         ) : null}
         <ul className={styles.list}>
-          {coupons.map((coupon) => (
+          {coupons.map((coupon) => {
+            const expired = isCouponExpired(coupon.expiresAt);
+
+            return (
             <li key={coupon.id} className={styles.item}>
               <div>
                 <strong>{coupon.code}</strong>
@@ -198,6 +219,9 @@ export default function CouponsPage() {
                     ? ` · min ${coupon.minOrderAmount}`
                     : ""}{" "}
                   · usos {coupon.usageCount}
+                  {coupon.expiresAt
+                    ? ` · expira ${new Date(coupon.expiresAt).toLocaleString("pt-BR")}`
+                    : " · sem expiração"}
                 </p>
               </div>
               <div className={styles.actions}>
@@ -208,6 +232,9 @@ export default function CouponsPage() {
                 >
                   {coupon.status}
                 </span>
+                {expired ? (
+                  <span className={styles.badgeOff}>EXPIRADO</span>
+                ) : null}
                 <button type="button" onClick={() => void toggleStatus(coupon)}>
                   {coupon.status === "ACTIVE" ? "Desativar" : "Ativar"}
                 </button>
@@ -220,7 +247,8 @@ export default function CouponsPage() {
                 </button>
               </div>
             </li>
-          ))}
+            );
+          })}
         </ul>
       </section>
     </main>
