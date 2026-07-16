@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -12,6 +13,7 @@ import {
   Query,
 } from "@nestjs/common";
 import { CreateCouponUseCase } from "../../application/coupon/create-coupon.js";
+import { DeleteCouponUseCase } from "../../application/coupon/delete-coupon.js";
 import { GetCouponUseCase } from "../../application/coupon/get-coupon.js";
 import { ListCouponsUseCase } from "../../application/coupon/list-coupons.js";
 import {
@@ -29,12 +31,14 @@ export class CouponsController {
   private readonly getCoupon: GetCouponUseCase;
   private readonly listCoupons: ListCouponsUseCase;
   private readonly updateCoupon: UpdateCouponUseCase;
+  private readonly deleteCoupon: DeleteCouponUseCase;
 
   constructor(@Inject(COUPON_REPOSITORY) repository: CouponRepository) {
     this.createCoupon = new CreateCouponUseCase(repository);
     this.getCoupon = new GetCouponUseCase(repository);
     this.listCoupons = new ListCouponsUseCase(repository);
     this.updateCoupon = new UpdateCouponUseCase(repository);
+    this.deleteCoupon = new DeleteCouponUseCase(repository);
   }
 
   @Post()
@@ -89,6 +93,15 @@ export class CouponsController {
     }
   }
 
+  @Delete(":id")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(@Param("id") id: string) {
+    try {
+      await this.deleteCoupon.execute(id);
+    } catch {
+      throw new NotFoundException("Coupon not found");
+    }
+  }
 
   private toResponse(coupon: Coupon) {
     return {
