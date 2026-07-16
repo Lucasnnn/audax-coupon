@@ -37,5 +37,5 @@ Representação de valores monetários como inteiro em centavos (ex.: `1500` = R
 _Avoid_: float/double para dinheiro; Decimal como tipo de domínio neste entregável
 
 **Usage count**:
-Quantidade de vezes que o cupom já foi utilizado com sucesso. Neste contexto de gestão, o campo é somente leitura para as regras de mutabilidade: enquanto for zero, Discount type e Discount value podem ser alterados; após o primeiro uso, esses campos ficam imutáveis. A escrita do contador pertence à ponta consumidora (registro de uso), não ao fluxo de gestão deste contexto.
+Quantidade de vezes que o cupom já foi utilizado com sucesso. Neste contexto de gestão, o campo é somente leitura e alimenta políticas de mutabilidade na camada de application: enquanto for zero, o cupom pode ser deletado e `Discount type` / `Discount value` podem ser alterados; após o primeiro uso, o cupom não pode mais ser deletado e só `Coupon status` e `Expiration date` permanecem editáveis. A escrita do contador pertence à ponta consumidora (registro de uso), não ao fluxo de gestão deste contexto.
 _Avoid_: Hits, redemptions count (como termo canônico)
