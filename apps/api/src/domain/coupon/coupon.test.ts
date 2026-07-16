@@ -107,4 +107,19 @@ describe("Coupon", () => {
       }),
     ).toThrow(/used/i);
   });
+
+  it("marks a coupon as expired when expiration date is in the past", () => {
+    const coupon = Coupon.reconstitute({
+      id: "11111111-1111-1111-1111-111111111111",
+      code: "OLD",
+      discountType: "PERCENTAGE",
+      discountValue: 10,
+      status: "ACTIVE",
+      usageCount: 0,
+      minOrderAmount: undefined,
+      expiresAt: new Date("2020-01-01T00:00:00.000Z"),
+    });
+
+    expect(coupon.isExpired(new Date("2020-01-02T00:00:00.000Z"))).toBe(true);
+  });
 });
