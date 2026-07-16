@@ -38,6 +38,11 @@ export class Coupon {
       if (props.minOrderAmount === undefined) {
         throw new Error("Fixed discount requires a min order amount");
       }
+      if (props.minOrderAmount < props.discountValue) {
+        throw new Error(
+          "Min order amount must be greater than or equal to the fixed discount value",
+        );
+      }
     }
 
     return new Coupon(
