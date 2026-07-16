@@ -7,13 +7,19 @@ import {
   Inject,
   NotFoundException,
   Param,
+  Patch,
   Post,
   Query,
 } from "@nestjs/common";
 import { CreateCouponUseCase } from "../../application/coupon/create-coupon.js";
 import { GetCouponUseCase } from "../../application/coupon/get-coupon.js";
 import { ListCouponsUseCase } from "../../application/coupon/list-coupons.js";
-import type { Coupon, CreateCouponProps } from "../../domain/coupon/coupon.js";
+import {
+  UpdateCouponUseCase,
+  type UpdateCouponInput,
+} from "../../application/coupon/update-coupon.js";
+import type { Coupon } from "../../domain/coupon/coupon.js";
+import type { CreateCouponProps } from "../../domain/coupon/coupon.js";
 import type { CouponRepository } from "../../domain/coupon/coupon-repository.js";
 import { COUPON_REPOSITORY } from "./tokens.js";
 
@@ -22,11 +28,13 @@ export class CouponsController {
   private readonly createCoupon: CreateCouponUseCase;
   private readonly getCoupon: GetCouponUseCase;
   private readonly listCoupons: ListCouponsUseCase;
+  private readonly updateCoupon: UpdateCouponUseCase;
 
   constructor(@Inject(COUPON_REPOSITORY) repository: CouponRepository) {
     this.createCoupon = new CreateCouponUseCase(repository);
     this.getCoupon = new GetCouponUseCase(repository);
     this.listCoupons = new ListCouponsUseCase(repository);
+    this.updateCoupon = new UpdateCouponUseCase(repository);
   }
 
   @Post()
@@ -63,6 +71,24 @@ export class CouponsController {
       throw new NotFoundException("Coupon not found");
     }
   }
+
+  @Patch(":id")
+  async update(
+    @Param("id") id: string,
+    @Body() body: Omit<UpdateCouponInput, "id">,
+  ) {
+    try {
+      await this.updateCoupon.execute({ id, ...body });
+      const coupon = await this.getCoupon.execute(id);
+      return this.toResponse(coupon);
+    } catch (error) {
+      if (error instanceof Error && /not found/i.test(error.message)) {
+        throw new NotFoundException("Coupon not found");
+      }
+      throw error;
+    }
+  }
+
 
   private toResponse(coupon: Coupon) {
     return {
