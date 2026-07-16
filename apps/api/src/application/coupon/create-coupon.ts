@@ -9,6 +9,10 @@ export class CreateCouponUseCase {
 
   async execute(props: CreateCouponProps): Promise<Coupon> {
     const coupon = Coupon.create(props);
+    const existing = await this.repository.findByCode(coupon.code);
+    if (existing) {
+      throw new Error("Coupon code must be unique");
+    }
     await this.repository.save(coupon);
     return coupon;
   }
