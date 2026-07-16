@@ -20,4 +20,23 @@ describe("CreateCouponUseCase", () => {
     expect(found?.discountType).toBe("PERCENTAGE");
     expect(found?.discountValue).toBe(10);
   });
+
+  it("rejects creating a coupon with a code that already exists", async () => {
+    const repository = new InMemoryCouponRepository();
+    const createCoupon = new CreateCouponUseCase(repository);
+
+    await createCoupon.execute({
+      code: "SAVE10",
+      discountType: "PERCENTAGE",
+      discountValue: 10,
+    });
+
+    await expect(
+      createCoupon.execute({
+        code: "save10",
+        discountType: "PERCENTAGE",
+        discountValue: 15,
+      }),
+    ).rejects.toThrow(/coupon code/i);
+  });
 });
