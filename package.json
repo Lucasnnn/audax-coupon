@@ -1,0 +1,13 @@
+{
+  "name": "audax",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "test": "turbo run test",
+    "test:api": "pnpm --filter @audax/api test"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.4",
+    "typescript": "^5.8.3"
+  }
+}
