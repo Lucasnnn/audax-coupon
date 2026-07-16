@@ -20,4 +20,12 @@ describe("GetCouponUseCase", () => {
     expect(found.id).toBe(created.id);
     expect(found.code).toBe("GETME");
   });
+  it("rejects when the coupon does not exist", async () => {
+    const getCoupon = new GetCouponUseCase(new InMemoryCouponRepository());
+
+    await expect(
+      getCoupon.execute("00000000-0000-0000-0000-000000000000"),
+    ).rejects.toThrow(/not found/i);
+  });
+
 });
