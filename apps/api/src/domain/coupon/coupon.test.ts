@@ -87,4 +87,24 @@ describe("Coupon", () => {
     expect(coupon.discountValue).toBe(2000);
     expect(coupon.minOrderAmount).toBe(2000);
   });
+
+  it("rejects changing discount after the coupon has been used", () => {
+    const coupon = Coupon.reconstitute({
+      id: "11111111-1111-1111-1111-111111111111",
+      code: "USED",
+      discountType: "PERCENTAGE",
+      discountValue: 10,
+      status: "ACTIVE",
+      usageCount: 1,
+      minOrderAmount: undefined,
+      expiresAt: undefined,
+    });
+
+    expect(() =>
+      coupon.changeDiscount({
+        discountType: "PERCENTAGE",
+        discountValue: 20,
+      }),
+    ).toThrow(/used/i);
+  });
 });
