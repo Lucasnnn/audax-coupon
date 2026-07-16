@@ -16,4 +16,14 @@ describe("Coupon", () => {
     expect(coupon.usageCount).toBe(0);
     expect(coupon.id).toBeTruthy();
   });
+
+  it("rejects a percentage discount value outside 1..100", () => {
+    expect(() =>
+      Coupon.create({
+        code: "OFF",
+        discountType: "PERCENTAGE",
+        discountValue: 0,
+      }),
+    ).toThrow(/percentage/i);
+  });
 });
