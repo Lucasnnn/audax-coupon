@@ -57,4 +57,16 @@ describe("Coupon", () => {
       }),
     ).toThrow(/coupon code/i);
   });
+
+  it("deactivates an active coupon", () => {
+    const coupon = Coupon.create({
+      code: "SUMMER",
+      discountType: "PERCENTAGE",
+      discountValue: 20,
+    });
+
+    coupon.deactivate();
+
+    expect(coupon.status).toBe("INACTIVE");
+  });
 });
