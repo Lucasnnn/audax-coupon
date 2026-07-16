@@ -1,5 +1,9 @@
 import type { Coupon } from "../../domain/coupon/coupon.js";
-import type { CouponRepository } from "../../domain/coupon/coupon-repository.js";
+import type {
+  CouponRepository,
+  ListCouponsParams,
+  ListCouponsResult,
+} from "../../domain/coupon/coupon-repository.js";
 
 export class InMemoryCouponRepository implements CouponRepository {
   private readonly coupons = new Map<string, Coupon>();
@@ -20,5 +24,18 @@ export class InMemoryCouponRepository implements CouponRepository {
       }
     }
     return null;
+  }
+
+  async list(params: ListCouponsParams): Promise<ListCouponsResult> {
+    const all = [...this.coupons.values()];
+    const start = (params.page - 1) * params.pageSize;
+    const items = all.slice(start, start + params.pageSize);
+
+    return {
+      items,
+      total: all.length,
+      page: params.page,
+      pageSize: params.pageSize,
+    };
   }
 }
