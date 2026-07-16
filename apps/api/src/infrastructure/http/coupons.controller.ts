@@ -43,8 +43,14 @@ export class CouponsController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() body: CreateCouponProps) {
-    const coupon = await this.createCoupon.execute(body);
+  async create(
+    @Body()
+    body: Omit<CreateCouponProps, "expiresAt"> & { expiresAt?: string },
+  ) {
+    const coupon = await this.createCoupon.execute({
+      ...body,
+      expiresAt: body.expiresAt ? new Date(body.expiresAt) : undefined,
+    });
     return this.toResponse(coupon);
   }
 
@@ -112,7 +118,7 @@ export class CouponsController {
       status: coupon.status,
       usageCount: coupon.usageCount,
       minOrderAmount: coupon.minOrderAmount ?? null,
-      expiresAt: coupon.expiresAt ?? null,
+      expiresAt: coupon.expiresAt ? coupon.expiresAt.toISOString() : null,
     };
   }
 }
