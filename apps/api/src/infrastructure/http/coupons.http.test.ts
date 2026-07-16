@@ -36,4 +36,21 @@ describe("Coupons HTTP", () => {
     expect(response.body.discountValue).toBe(10);
     expect(response.body.id).toBeTruthy();
   });
+
+  it("gets a coupon by id", async () => {
+    const created = await request(app.getHttpServer())
+      .post("/coupons")
+      .send({
+        code: "FINDME",
+        discountType: "PERCENTAGE",
+        discountValue: 5,
+      })
+      .expect(201);
+
+    const response = await request(app.getHttpServer())
+      .get(`/coupons/${created.body.id}`)
+      .expect(200);
+
+    expect(response.body.code).toBe("FINDME");
+  });
 });
