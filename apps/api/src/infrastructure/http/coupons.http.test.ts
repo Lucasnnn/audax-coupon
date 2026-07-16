@@ -37,6 +37,20 @@ describe("Coupons HTTP", () => {
     expect(response.body.id).toBeTruthy();
   });
 
+  it("creates a coupon with an expiration date", async () => {
+    const response = await request(app.getHttpServer())
+      .post("/coupons")
+      .send({
+        code: "EXPIRES",
+        discountType: "PERCENTAGE",
+        discountValue: 10,
+        expiresAt: "2026-12-31T23:59:00.000Z",
+      })
+      .expect(201);
+
+    expect(response.body.expiresAt).toBe("2026-12-31T23:59:00.000Z");
+  });
+
   it("gets a coupon by id", async () => {
     const created = await request(app.getHttpServer())
       .post("/coupons")
