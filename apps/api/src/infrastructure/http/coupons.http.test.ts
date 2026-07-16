@@ -92,4 +92,19 @@ describe("Coupons HTTP", () => {
     expect(response.body.status).toBe("INACTIVE");
     expect(response.body.code).toBe("UPD");
   });
+
+  it("deletes a coupon", async () => {
+    const created = await request(app.getHttpServer())
+      .post("/coupons")
+      .send({ code: "DEL", discountType: "PERCENTAGE", discountValue: 10 })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .delete(`/coupons/${created.body.id}`)
+      .expect(204);
+
+    await request(app.getHttpServer())
+      .get(`/coupons/${created.body.id}`)
+      .expect(404);
+  });
 });
