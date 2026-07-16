@@ -17,4 +17,5 @@ export interface CouponRepository {
   findById(id: string): Promise<Coupon | null>;
   findByCode(code: string): Promise<Coupon | null>;
   list(params: ListCouponsParams): Promise<ListCouponsResult>;
+  delete(id: string): Promise<void>;
 }

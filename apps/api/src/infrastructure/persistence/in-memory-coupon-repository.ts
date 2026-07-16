@@ -38,4 +38,8 @@ export class InMemoryCouponRepository implements CouponRepository {
       pageSize: params.pageSize,
     };
   }
+
+  async delete(id: string): Promise<void> {
+    this.coupons.delete(id);
+  }
 }
