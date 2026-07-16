@@ -132,4 +132,18 @@ describe("Coupon", () => {
 
     expect(coupon.isExpired(new Date("2030-01-01T00:00:00.000Z"))).toBe(false);
   });
+
+  it("changes the expiration date", () => {
+    const coupon = Coupon.create({
+      code: "EXTEND",
+      discountType: "PERCENTAGE",
+      discountValue: 10,
+      expiresAt: new Date("2026-01-01T00:00:00.000Z"),
+    });
+
+    const next = new Date("2027-06-01T12:00:00.000Z");
+    coupon.changeExpiration(next);
+
+    expect(coupon.expiresAt).toEqual(next);
+  });
 });
