@@ -2,8 +2,10 @@
   "name": "@audax/api",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "test": "vitest run",
+    "typecheck": "tsc --noEmit",
     "test:watch": "vitest",
     "start:dev": "tsx watch src/main.ts",
     "dev": "tsx watch src/main.ts",

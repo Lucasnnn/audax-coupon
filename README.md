@@ -107,7 +107,7 @@ pnpm test          # monorepo (Turbo)
 pnpm test:api      # só @audax/api
 ```
 
-CI (GitHub Actions): em todo `push`/`pull_request`, roda `pnpm test` (Node 22 + pnpm 9).
+CI (GitHub Actions): em todo `push`/`pull_request`, roda testes, typecheck e build de produção do web (Node 22 + pnpm 9).
 
 - Runner: **Vitest** em todo o monorepo.
 - Domínio, casos de uso e HTTP usam **`InMemoryCouponRepository`** — sem Postgres e sem Docker nos testes.

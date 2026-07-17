@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Coupon } from "../../../domain/coupon/coupon.js";
 import { couponFromRow, couponToRow } from "./coupon-mapper.js";
+import type { CouponRow } from "./schema.js";
 
 describe("coupon drizzle mapper", () => {
   it("round-trips a coupon through row shape", () => {
@@ -15,7 +16,12 @@ describe("coupon drizzle mapper", () => {
       expiresAt: new Date("2027-01-01T00:00:00.000Z"),
     });
 
-    const row = couponToRow(coupon);
+    const row: CouponRow = {
+      ...couponToRow(coupon),
+      usageCount: coupon.usageCount,
+      minOrderAmount: null,
+      expiresAt: coupon.expiresAt ?? null,
+    };
     const restored = couponFromRow(row);
 
     expect(restored.id).toBe(coupon.id);

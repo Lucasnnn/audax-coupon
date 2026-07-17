@@ -11,6 +11,10 @@
       "dependsOn": ["^test"],
       "cache": false
     },
+    "typecheck": {
+      "dependsOn": ["^typecheck"],
+      "cache": false
+    },
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**"]

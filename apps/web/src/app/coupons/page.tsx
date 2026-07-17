@@ -44,7 +44,7 @@ export default function CouponsPage() {
   const [couponPendingDelete, setCouponPendingDelete] =
     useState<CouponDto | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const listSectionRef = useRef<HTMLSectionElement>(null);
+  const listSectionRef = useRef<HTMLElement>(null);
   const skipListScrollRef = useRef(true);
 
   const {

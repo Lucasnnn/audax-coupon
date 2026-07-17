@@ -10,8 +10,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: pnpm test
+  quality:
+    name: Tests, typecheck and build
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -35,3 +35,9 @@ jobs:
 
       - name: Run tests
         run: pnpm test
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Production build
+        run: pnpm --filter @audax/web build

@@ -5,6 +5,7 @@
   "scripts": {
     "test": "turbo run test",
     "test:api": "pnpm --filter @audax/api test",
+    "typecheck": "turbo run typecheck",
     "dev": "turbo run dev --parallel",
     "dev:memory": "cross-env PERSISTENCE=memory DATABASE_URL= turbo run dev --parallel",
     "dev:postgres": "pnpm docker:db && pnpm dev",
