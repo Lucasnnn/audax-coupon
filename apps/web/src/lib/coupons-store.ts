@@ -64,6 +64,21 @@ export function paginateCoupons(
   };
 }
 
+export function shouldFetchNextCouponBatch(input: {
+  truncated: boolean;
+  loadingMore: boolean;
+  sourceCount: number;
+  page: number;
+  totalPages: number;
+}): boolean {
+  return (
+    input.truncated &&
+    !input.loadingMore &&
+    input.sourceCount > 0 &&
+    input.page >= input.totalPages
+  );
+}
+
 export const couponsStore = {
   subscribe(listener: Listener): () => void {
     listeners.add(listener);

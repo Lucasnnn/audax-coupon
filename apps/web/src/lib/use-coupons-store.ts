@@ -24,7 +24,8 @@ export function useCouponsPage(
   pageSize: number,
   filters: CouponListFilters,
 ) {
-  const { items, total, truncated, loaded, loading, error } = useCouponsStore();
+  const { items, total, truncated, loaded, loading, loadingMore, error } =
+    useCouponsStore();
   const filtered = filterCoupons(items, filters);
   const pageData = paginateCoupons(filtered, page, pageSize);
   return {
@@ -37,6 +38,7 @@ export function useCouponsPage(
     truncated,
     loaded,
     loading,
+    loadingMore,
     error,
   };
 }

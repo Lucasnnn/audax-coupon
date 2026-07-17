@@ -3,7 +3,10 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { CouponDto, DiscountType } from "@audax/contracts";
 import { couponsApi } from "@/lib/coupons-api";
-import { couponsStore } from "@/lib/coupons-store";
+import {
+  couponsStore,
+  shouldFetchNextCouponBatch,
+} from "@/lib/coupons-store";
 import { useCouponsPage } from "@/lib/use-coupons-store";
 import { isCouponExpired } from "@/lib/coupon-expiration";
 import { canChangeExpiration, canDeleteCoupon } from "@/lib/coupon-ops";
@@ -78,12 +81,13 @@ export default function CouponsPage() {
     sourceCount,
     truncated,
     loading,
+    loadingMore,
     error: loadError,
   } = useCouponsPage(page, PAGE_SIZE, filters);
 
   const totalPages = Math.max(1, Math.ceil(loadedCount / PAGE_SIZE));
   const error = actionError ?? loadError;
-  const busy = loading || submitting || deleting || mutating;
+  const busy = loading || loadingMore || submitting || deleting || mutating;
   const filtersActive =
     filters.status !== "ALL" ||
     filters.expiration !== "ALL" ||
@@ -102,6 +106,21 @@ export default function CouponsPage() {
       setPage(totalPages);
     }
   }, [page, loadedCount, totalPages]);
+
+  useEffect(() => {
+    if (
+      !shouldFetchNextCouponBatch({
+        truncated,
+        loadingMore,
+        sourceCount,
+        page,
+        totalPages,
+      })
+    ) {
+      return;
+    }
+    void couponsStore.loadMore();
+  }, [truncated, loadingMore, sourceCount, page, totalPages]);
 
   useEffect(() => {
     if (skipListScrollRef.current) {
@@ -247,8 +266,9 @@ export default function CouponsPage() {
       {error ? <div className={styles.error}>{error}</div> : null}
       {truncated ? (
         <div className={styles.error} role="status">
-          Exibindo os primeiros {loadedCount} de {total} cupons. A listagem
-          local está limitada a 1000 itens.
+          {loadingMore
+            ? `Carregando mais cupons… (${sourceCount} de ${total})`
+            : `Exibindo ${sourceCount} de ${total} cupons. Vá até a última página para carregar mais.`}
         </div>
       ) : null}
 
