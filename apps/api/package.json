@@ -6,7 +6,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "start:dev": "tsx watch src/main.ts",
-    "dev": "tsx watch src/main.ts"
+    "dev": "tsx watch src/main.ts",
+    "start": "tsx src/main.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/infrastructure/persistence/drizzle/run-migrate.ts"
   },
   "devDependencies": {
     "@nestjs/testing": "^11.1.28",
