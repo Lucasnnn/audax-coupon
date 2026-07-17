@@ -150,6 +150,12 @@ export class Coupon {
     );
   }
 
+  private static assertMoneyCentsWithinLimit(cents: number): void {
+    if (cents > MAX_MONEY_CENTS) {
+      throw new Error(CouponErrors.moneyAmountTooLarge);
+    }
+  }
+
   private static assertDiscountInvariants(props: ChangeDiscountProps): void {
     if (props.discountType === "PERCENTAGE") {
       if (
@@ -168,9 +174,7 @@ export class Coupon {
       ) {
         throw new Error(CouponErrors.fixedPositive);
       }
-      if (props.discountValue > MAX_MONEY_CENTS) {
-        throw new Error(CouponErrors.moneyAmountTooLarge);
-      }
+      Coupon.assertMoneyCentsWithinLimit(props.discountValue);
       if (props.minOrderAmount === undefined) {
         throw new Error(CouponErrors.fixedRequiresMin);
       }
@@ -179,11 +183,8 @@ export class Coupon {
       }
     }
 
-    if (
-      props.minOrderAmount !== undefined &&
-      props.minOrderAmount > MAX_MONEY_CENTS
-    ) {
-      throw new Error(CouponErrors.moneyAmountTooLarge);
+    if (props.minOrderAmount !== undefined) {
+      Coupon.assertMoneyCentsWithinLimit(props.minOrderAmount);
     }
   }
 }
