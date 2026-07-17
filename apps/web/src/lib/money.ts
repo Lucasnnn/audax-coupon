@@ -6,14 +6,26 @@ export const MAX_REAIS_INPUT_CENTS = 2_147_483_600;
 
 const MAX_MONEY_DIGITS = String(MAX_MONEY_CENTS).length;
 
-export function formatReaisInput(raw: string): string {
-  const digits = raw.replace(/\D/g, "").slice(0, MAX_MONEY_DIGITS);
+export type FormattedReaisInput = {
+  value: string;
+  exceededMax: boolean;
+};
+
+export function formatReaisInput(raw: string): FormattedReaisInput {
+  const digits = raw.replace(/\D/g, "");
   if (digits === "") {
-    return "";
+    return { value: "", exceededMax: false };
   }
 
-  const cents = Math.min(Number(digits), MAX_REAIS_INPUT_CENTS);
-  return centsToReais(cents);
+  const limitedDigits = digits.slice(0, MAX_MONEY_DIGITS);
+  const asNumber = Number(limitedDigits);
+  const exceededMax =
+    digits.length > MAX_MONEY_DIGITS || asNumber > MAX_REAIS_INPUT_CENTS;
+
+  return {
+    value: centsToReais(Math.min(asNumber, MAX_REAIS_INPUT_CENTS)),
+    exceededMax,
+  };
 }
 
 export function reaisToCents(value: string): number {
