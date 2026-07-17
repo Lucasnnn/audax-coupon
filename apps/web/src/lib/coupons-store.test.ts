@@ -64,6 +64,47 @@ describe("coupons store helpers", () => {
     expect(snap.truncated).toBe(true);
   });
 
+  it("loadMore appends the next API page into the local cache", async () => {
+    const firstPage = Array.from({ length: 1000 }, (_, index) =>
+      coupon({
+        id: `p1-${index}`,
+        code: `A${String(index).padStart(4, "0")}`,
+        createdAt: "2026-06-01T00:00:00.000Z",
+      }),
+    );
+    const secondPage = Array.from({ length: 500 }, (_, index) =>
+      coupon({
+        id: `p2-${index}`,
+        code: `B${String(index).padStart(4, "0")}`,
+        createdAt: "2026-01-01T00:00:00.000Z",
+      }),
+    );
+    const list = vi.spyOn(couponsApi, "list");
+    list.mockResolvedValueOnce({
+      items: firstPage,
+      total: 1500,
+      page: 1,
+      pageSize: 1000,
+    });
+    list.mockResolvedValueOnce({
+      items: secondPage,
+      total: 1500,
+      page: 2,
+      pageSize: 1000,
+    });
+
+    await couponsStore.load({ force: true });
+    await couponsStore.loadMore();
+
+    const snap = couponsStore.getSnapshot();
+    expect(list).toHaveBeenCalledWith(2, 1000);
+    expect(snap.items).toHaveLength(1500);
+    expect(snap.items[0]?.code).toBe("A0000");
+    expect(snap.items[1000]?.code).toBe("B0000");
+    expect(snap.total).toBe(1500);
+    expect(snap.truncated).toBe(false);
+  });
+
   it("keeps newest coupon at the top on add", () => {
     couponsStore.add(
       coupon({ id: "1", code: "OLD", createdAt: "2026-01-01T00:00:00.000Z" }),
