@@ -526,10 +526,7 @@ export default function CouponsPage() {
                   O cupom <strong>{couponPendingDelete.code}</strong> não pode
                   ser excluído porque já possui{" "}
                   {couponPendingDelete.usageCount}{" "}
-                  {couponPendingDelete.usageCount === 1
-                    ? "caso de uso"
-                    : "usos"}
-                  .
+                  {couponPendingDelete.usageCount === 1 ? "uso" : "usos"}.
                 </p>
                 <div className={styles.dialogActions}>
                   <button
