@@ -38,8 +38,11 @@ function setState(patch: Partial<CouponsStoreState>): void {
   emit();
 }
 
-export function sortCouponsByCode(items: CouponDto[]): CouponDto[] {
-  return [...items].sort((a, b) => a.code.localeCompare(b.code));
+export function sortCouponsByCreatedAtDesc(items: CouponDto[]): CouponDto[] {
+  return [...items].sort(
+    (a, b) =>
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
 }
 
 export function paginateCoupons(
@@ -95,7 +98,7 @@ export const couponsStore = {
     setState({ loading: true, error: null });
     try {
       const result = await couponsApi.list(1, CLIENT_LIST_PAGE_SIZE);
-      const items = sortCouponsByCode(result.items);
+      const items = sortCouponsByCreatedAtDesc(result.items);
       setState({
         items,
         total: result.total,
@@ -114,7 +117,7 @@ export const couponsStore = {
   },
 
   add(coupon: CouponDto): void {
-    const items = sortCouponsByCode([...state.items, coupon]);
+    const items = sortCouponsByCreatedAtDesc([coupon, ...state.items]);
     setState({
       items,
       total: state.total + 1,
@@ -125,7 +128,7 @@ export const couponsStore = {
 
   replace(coupon: CouponDto): void {
     setState({
-      items: sortCouponsByCode(
+      items: sortCouponsByCreatedAtDesc(
         state.items.map((item) => (item.id === coupon.id ? coupon : item)),
       ),
       error: null,

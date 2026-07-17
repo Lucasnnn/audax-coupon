@@ -4,7 +4,7 @@ import { couponsApi } from "./coupons-api";
 import {
   couponsStore,
   paginateCoupons,
-  sortCouponsByCode,
+  sortCouponsByCreatedAtDesc,
 } from "./coupons-store";
 
 function coupon(partial: Partial<CouponDto> & Pick<CouponDto, "id" | "code">): CouponDto {
@@ -15,6 +15,7 @@ function coupon(partial: Partial<CouponDto> & Pick<CouponDto, "id" | "code">): C
     usageCount: 0,
     minOrderAmount: null,
     expiresAt: null,
+    createdAt: "2026-01-01T00:00:00.000Z",
     ...partial,
   };
 }
@@ -25,12 +26,12 @@ describe("coupons store helpers", () => {
     vi.restoreAllMocks();
   });
 
-  it("sorts coupons by code", () => {
-    const sorted = sortCouponsByCode([
-      coupon({ id: "2", code: "BETA" }),
-      coupon({ id: "1", code: "ALPHA" }),
+  it("sorts coupons by creation date descending", () => {
+    const sorted = sortCouponsByCreatedAtDesc([
+      coupon({ id: "1", code: "OLD", createdAt: "2026-01-01T00:00:00.000Z" }),
+      coupon({ id: "2", code: "NEW", createdAt: "2026-06-01T00:00:00.000Z" }),
     ]);
-    expect(sorted.map((item) => item.code)).toEqual(["ALPHA", "BETA"]);
+    expect(sorted.map((item) => item.code)).toEqual(["NEW", "OLD"]);
   });
 
   it("paginates from in-memory items", () => {
@@ -61,6 +62,19 @@ describe("coupons store helpers", () => {
     expect(snap.items).toHaveLength(1000);
     expect(snap.total).toBe(1500);
     expect(snap.truncated).toBe(true);
+  });
+
+  it("keeps newest coupon at the top on add", () => {
+    couponsStore.add(
+      coupon({ id: "1", code: "OLD", createdAt: "2026-01-01T00:00:00.000Z" }),
+    );
+    couponsStore.add(
+      coupon({ id: "2", code: "NEW", createdAt: "2026-06-01T00:00:00.000Z" }),
+    );
+    expect(couponsStore.getSnapshot().items.map((item) => item.code)).toEqual([
+      "NEW",
+      "OLD",
+    ]);
   });
 
   it("updates local state on add replace and remove", () => {
