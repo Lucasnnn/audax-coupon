@@ -1,5 +1,6 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it, beforeEach, vi } from "vitest";
 import type { CouponDto } from "@audax/contracts";
+import { couponsApi } from "./coupons-api";
 import {
   couponsStore,
   paginateCoupons,
@@ -21,6 +22,7 @@ function coupon(partial: Partial<CouponDto> & Pick<CouponDto, "id" | "code">): C
 describe("coupons store helpers", () => {
   beforeEach(() => {
     couponsStore._reset();
+    vi.restoreAllMocks();
   });
 
   it("sorts coupons by code", () => {
@@ -59,5 +61,26 @@ describe("coupons store helpers", () => {
     expect(couponsStore.getSnapshot().items.map((item) => item.id)).toEqual([
       "1",
     ]);
+  });
+
+  it("clears load error when a local mutation succeeds", async () => {
+    vi.spyOn(couponsApi, "list").mockRejectedValueOnce(new Error("offline"));
+    await couponsStore.load({ force: true });
+    expect(couponsStore.getSnapshot().error).toBe("offline");
+
+    couponsStore.add(coupon({ id: "1", code: "NEW" }));
+    expect(couponsStore.getSnapshot().error).toBeNull();
+
+    vi.spyOn(couponsApi, "list").mockRejectedValueOnce(new Error("offline again"));
+    await couponsStore.load({ force: true });
+    expect(couponsStore.getSnapshot().error).toBe("offline again");
+
+    couponsStore.replace(coupon({ id: "1", code: "NEW", status: "INACTIVE" }));
+    expect(couponsStore.getSnapshot().error).toBeNull();
+
+    vi.spyOn(couponsApi, "list").mockRejectedValueOnce(new Error("offline yet"));
+    await couponsStore.load({ force: true });
+    couponsStore.remove("1");
+    expect(couponsStore.getSnapshot().error).toBeNull();
   });
 });
