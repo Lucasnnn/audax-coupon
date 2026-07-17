@@ -1,11 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { CouponDto, DiscountType } from "@audax/contracts";
 import { couponsApi } from "@/lib/coupons-api";
+import { couponsStore } from "@/lib/coupons-store";
+import { useCouponsPage } from "@/lib/use-coupons-store";
 import { isCouponExpired } from "@/lib/coupon-expiration";
 import { canChangeExpiration, canDeleteCoupon } from "@/lib/coupon-ops";
-import { formatExpirationDisplay, minDatetimeLocalToday, toDatetimeLocalValue } from "@/lib/datetime-local";
+import {
+  formatExpirationDisplay,
+  minDatetimeLocalToday,
+  toDatetimeLocalValue,
+} from "@/lib/datetime-local";
 import { isExpirationNotBeforeToday } from "@/lib/expiration-guard";
 import { centsToReais, reaisToCents } from "@/lib/money";
 import styles from "./coupons.module.css";
@@ -28,12 +34,9 @@ const emptyForm: FormState = {
 };
 
 export default function CouponsPage() {
-  const [coupons, setCoupons] = useState<CouponDto[]>([]);
-  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [expirationDrafts, setExpirationDrafts] = useState<
     Record<string, string>
@@ -44,28 +47,25 @@ export default function CouponsPage() {
   const listSectionRef = useRef<HTMLSectionElement>(null);
   const skipListScrollRef = useRef(true);
 
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const {
+    items: coupons,
+    total,
+    loading,
+    error: loadError,
+  } = useCouponsPage(page, PAGE_SIZE);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await couponsApi.list(page, PAGE_SIZE);
-      setCoupons(result.items);
-      setTotal(result.total);
-      if (result.total > 0 && result.items.length === 0 && page > 1) {
-        setPage(page - 1);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao carregar cupons");
-    } finally {
-      setLoading(false);
-    }
-  }, [page]);
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const error = actionError ?? loadError;
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    void couponsStore.load();
+  }, []);
+
+  useEffect(() => {
+    if (total > 0 && page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, total, totalPages]);
 
   useEffect(() => {
     if (skipListScrollRef.current) {
@@ -75,17 +75,10 @@ export default function CouponsPage() {
     listSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [page]);
 
-  async function refreshAfterMutation() {
-    if (page !== 1) {
-      setPage(1);
-      return;
-    }
-    await load();
-  }
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitting(true);
-    setError(null);
+    setActionError(null);
 
     try {
       const discountValue =
@@ -119,7 +112,7 @@ export default function CouponsPage() {
         throw new Error("A data de expiração não pode ser anterior a hoje");
       }
 
-      await couponsApi.create({
+      const created = await couponsApi.create({
         code: form.code,
         discountType: form.discountType,
         discountValue,
@@ -130,43 +123,47 @@ export default function CouponsPage() {
             : new Date(form.expiresAt).toISOString(),
       });
 
+      couponsStore.add(created);
       setForm(emptyForm);
-      await refreshAfterMutation();
+      setPage(1);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao criar cupom");
+      setActionError(err instanceof Error ? err.message : "Falha ao criar cupom");
     } finally {
       setSubmitting(false);
     }
   }
 
   async function toggleStatus(coupon: CouponDto) {
-    setError(null);
+    setActionError(null);
     try {
-      await couponsApi.update(coupon.id, {
+      const updated = await couponsApi.update(coupon.id, {
         status: coupon.status === "ACTIVE" ? "INACTIVE" : "ACTIVE",
       });
-      await load();
+      couponsStore.replace(updated);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao atualizar cupom");
+      setActionError(
+        err instanceof Error ? err.message : "Falha ao atualizar cupom",
+      );
     }
   }
 
   async function removeCoupon(coupon: CouponDto) {
-    setError(null);
+    setActionError(null);
     if (!canDeleteCoupon(coupon.usageCount)) {
       return;
     }
     setDeleting(true);
     try {
       await couponsApi.remove(coupon.id);
+      couponsStore.remove(coupon.id);
       setCouponPendingDelete(null);
       if (coupons.length === 1 && page > 1) {
         setPage(page - 1);
-      } else {
-        await load();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao excluir cupom");
+      setActionError(
+        err instanceof Error ? err.message : "Falha ao excluir cupom",
+      );
     } finally {
       setDeleting(false);
     }
@@ -179,7 +176,7 @@ export default function CouponsPage() {
   }
 
   async function saveExpiration(coupon: CouponDto) {
-    setError(null);
+    setActionError(null);
     try {
       if (!canChangeExpiration(coupon.expiresAt)) {
         throw new Error(
@@ -190,17 +187,17 @@ export default function CouponsPage() {
       if (draft !== "" && !isExpirationNotBeforeToday(draft)) {
         throw new Error("A data de expiração não pode ser anterior a hoje");
       }
-      await couponsApi.update(coupon.id, {
+      const updated = await couponsApi.update(coupon.id, {
         expiresAt: draft === "" ? null : new Date(draft).toISOString(),
       });
+      couponsStore.replace(updated);
       setExpirationDrafts((current) => {
         const next = { ...current };
         delete next[coupon.id];
         return next;
       });
-      await load();
     } catch (err) {
-      setError(
+      setActionError(
         err instanceof Error ? err.message : "Falha ao atualizar expiração",
       );
     }

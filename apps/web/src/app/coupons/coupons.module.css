@@ -1,9 +1,23 @@
 .page {
-  max-width: 960px;
-  margin: 0 auto;
+  --page-ink: #e8f2ec;
+  --page-muted: #a8c4b6;
+  min-height: 100vh;
+  max-width: none;
+  margin: 0;
   padding: 2.5rem 1.25rem 4rem;
   display: grid;
   gap: 1.5rem;
+  justify-items: center;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 0%, #1a4d3a 0%, transparent 55%),
+    radial-gradient(ellipse 70% 45% at 90% 10%, #0d3d2e 0%, transparent 50%),
+    linear-gradient(165deg, #0a2e22 0%, #0f3d2c 45%, #08241a 100%);
+  color: var(--page-ink);
+}
+
+.page > * {
+  width: 100%;
+  max-width: 960px;
 }
 
 .header {
@@ -18,18 +32,22 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: 0.75rem;
-  color: var(--muted);
+  color: var(--page-muted);
 }
 
 .header h1 {
   margin: 0;
   font-size: 2.25rem;
   letter-spacing: -0.03em;
+  color: var(--page-ink);
 }
 
 .subtitle,
-.muted,
 .meta {
+  color: var(--page-muted);
+}
+
+.muted {
   color: var(--muted);
 }
 
