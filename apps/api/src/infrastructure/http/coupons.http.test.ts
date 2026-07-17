@@ -51,6 +51,18 @@ describe("Coupons HTTP", () => {
     expect(response.body.expiresAt).toBe("2026-12-31T23:59:00.000Z");
   });
 
+  it("rejects creating a coupon with expiration before today", async () => {
+    await request(app.getHttpServer())
+      .post("/coupons")
+      .send({
+        code: "PASTHTTP",
+        discountType: "PERCENTAGE",
+        discountValue: 10,
+        expiresAt: "2020-01-01T00:00:00.000Z",
+      })
+      .expect(400);
+  });
+
   it("gets a coupon by id", async () => {
     const created = await request(app.getHttpServer())
       .post("/coupons")
