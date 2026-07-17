@@ -105,6 +105,32 @@ describe("UpdateCouponUseCase", () => {
     ).rejects.toThrow(/desconto não podem ser alterados/i);
   });
 
+  it("updates fixed discount while usage count is zero", async () => {
+    const repository = new InMemoryCouponRepository();
+    const createCoupon = new CreateCouponUseCase(repository);
+    const updateCoupon = new UpdateCouponUseCase(repository);
+    const getCoupon = new GetCouponUseCase(repository);
+
+    const created = await createCoupon.execute({
+      code: "FIXUPD",
+      discountType: "FIXED",
+      discountValue: 1000,
+      minOrderAmount: 5000,
+    });
+
+    await updateCoupon.execute({
+      id: created.id,
+      discountType: "FIXED",
+      discountValue: 2000,
+      minOrderAmount: 5000,
+    });
+
+    const updated = await getCoupon.execute(created.id);
+    expect(updated.discountType).toBe("FIXED");
+    expect(updated.discountValue).toBe(2000);
+    expect(updated.minOrderAmount).toBe(5000);
+  });
+
   it("rejects updating expiration to a date before today", async () => {
     const repository = new InMemoryCouponRepository();
     const createCoupon = new CreateCouponUseCase(repository);

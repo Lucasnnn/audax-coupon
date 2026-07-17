@@ -37,6 +37,36 @@ describe("Coupons HTTP", () => {
     expect(response.body.id).toBeTruthy();
   });
 
+  it("creates a fixed coupon with min order amount", async () => {
+    const response = await request(app.getHttpServer())
+      .post("/coupons")
+      .send({
+        code: "httpfix",
+        discountType: "FIXED",
+        discountValue: 1500,
+        minOrderAmount: 5000,
+      })
+      .expect(201);
+
+    expect(response.body.code).toBe("HTTPFIX");
+    expect(response.body.discountType).toBe("FIXED");
+    expect(response.body.discountValue).toBe(1500);
+    expect(response.body.minOrderAmount).toBe(5000);
+  });
+
+  it("rejects a fixed coupon without min order amount", async () => {
+    const response = await request(app.getHttpServer())
+      .post("/coupons")
+      .send({
+        code: "NOMINHTTP",
+        discountType: "FIXED",
+        discountValue: 1500,
+      })
+      .expect(400);
+
+    expect(response.body.message).toMatch(/valor mínimo de pedido/i);
+  });
+
   it("creates a coupon with an expiration date", async () => {
     const response = await request(app.getHttpServer())
       .post("/coupons")

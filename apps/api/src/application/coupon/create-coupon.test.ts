@@ -71,4 +71,37 @@ describe("CreateCouponUseCase", () => {
       }),
     ).rejects.toThrow(/data de expiração não pode ser anterior a hoje/i);
   });
+
+  it("creates a fixed coupon with min order amount in cents", async () => {
+    const repository = new InMemoryCouponRepository();
+    const createCoupon = new CreateCouponUseCase(repository);
+
+    const created = await createCoupon.execute({
+      code: "fixed15",
+      discountType: "FIXED",
+      discountValue: 1500,
+      minOrderAmount: 5000,
+    });
+
+    const found = await repository.findById(created.id);
+
+    expect(found).not.toBeNull();
+    expect(found?.code).toBe("FIXED15");
+    expect(found?.discountType).toBe("FIXED");
+    expect(found?.discountValue).toBe(1500);
+    expect(found?.minOrderAmount).toBe(5000);
+  });
+
+  it("rejects a fixed coupon without min order amount", async () => {
+    const repository = new InMemoryCouponRepository();
+    const createCoupon = new CreateCouponUseCase(repository);
+
+    await expect(
+      createCoupon.execute({
+        code: "NOMIN",
+        discountType: "FIXED",
+        discountValue: 1500,
+      }),
+    ).rejects.toThrow(/valor mínimo de pedido/i);
+  });
 });
