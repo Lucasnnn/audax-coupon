@@ -27,6 +27,7 @@ describe("ListCouponsUseCase", () => {
 
     const page = await listCoupons.execute({ page: 1, pageSize: 2 });
 
+    expect(page.items.map((coupon) => coupon.code)).toEqual(["THREE", "TWO"]);
     expect(page.items).toHaveLength(2);
     expect(page.total).toBe(3);
     expect(page.page).toBe(1);
