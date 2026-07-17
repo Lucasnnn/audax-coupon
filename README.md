@@ -1,6 +1,6 @@
 # Audax — gestão de cupons
 
-Monorepo (Turborepo + pnpm) para CRUD de cupons de desconto: API Nest em arquitetura hexagonal (`apps/api`), UI Next.js (`apps/web`) e contratos compartilhados (`packages/contracts`).
+Monorepo (Turborepo + pnpm) para CRUD de cupons de desconto: API Nest em arquitetura hexagonal (`apps/api`), UI Next.js App Router (`apps/web`) e tipos do contrato HTTP (`packages/contracts`).
 
 Este contexto cobre **cadastro e ciclo de vida operacional** do cupom. Elegibilidade e aplicação do desconto em pedido ficam fora do escopo (outra ponta consumidora).
 
@@ -118,8 +118,8 @@ CI (GitHub Actions): em todo `push`/`pull_request`, roda `pnpm test` (Node 22 + 
 
 ```
 apps/api/          Nest — domain / application / infrastructure
-apps/web/          Next.js — UI de gestão
-packages/contracts DTOs, enums e códigos de erro compartilhados
+apps/web/          Next.js (App Router) — UI de gestão
+packages/contracts DTOs/enums do contrato HTTP (consumidos pelo web)
 docs/adr/          decisões de arquitetura
 CONTEXT.md         linguagem ubíqua do domínio
 ```
@@ -130,62 +130,33 @@ CONTEXT.md         linguagem ubíqua do domínio
 2. **Persistência** — porta `CouponRepository`, Drizzle/Postgres, Compose só do banco e seed.
 3. **Produto / UX** — formulário, paginação, políticas na UI, store local e polish visual.
 
+## Superfície da UI vs API
+
+A API expõe CRUD completo: criar, listar (paginação), buscar por id, atualizar e remover.
+
+Na UI de gestão:
+
+- **Criar** com validação de formulário, loading e erros da API.
+- **Listar** com paginação no cliente (store carrega até 1000 itens).
+- **Atualizar** status e Expiration date na listagem (campos operacionais do dia a dia).
+- **Remover** com confirmação (bloqueado se `usageCount > 0`).
+- Tipo/valor de desconto e mínimo de pedido são definidos na **criação**; a API já aceita alteração desses campos no `PATCH` enquanto `usageCount === 0` (política na application). Detalhe por id existe na API (`GET /coupons/:id`) e no client (`couponsApi.get`).
+
 ## Decisões de arquitetura e trade-offs
 
-### Monorepo (Turborepo + pnpm)
+Resumo abaixo; o “porquê” formal está em [`docs/adr/`](docs/adr/) e a linguagem em [`CONTEXT.md`](CONTEXT.md).
 
-**Decisão:** um repositório com `apps/*` e `packages/*`, orquestrado por Turbo.
+| Tema | Decisão | Trade-off principal |
+|------|---------|---------------------|
+| Monorepo | Turborepo + pnpm | Setup leve vs governança Nx (geradores/boundaries) em times maiores — [ADR 0001](docs/adr/0001-monorepo-turborepo-pnpm.md) |
+| Hexagonal | `domain` → `application` → `infrastructure`; web só HTTP + contracts | Tipagem compartilhada sem vazar domínio; erros de domínio ficam na API — [ADR 0002](docs/adr/0002-hexagonal-layers-and-contracts.md) |
+| Persistência | Porta + Drizzle/Postgres; in-memory em testes e `dev:memory` | SQL revisável vs DX Prisma; dados memory não sobrevivem ao restart — [ADR 0003](docs/adr/0003-persistence-drizzle-postgres.md) |
+| Dinheiro / ciclo de vida | Centavos na API; status só ACTIVE/INACTIVE; políticas pós-uso na application | Conversão reais↔centavos no front; sem status EXPIRED — [ADR 0004](docs/adr/0004-coupon-lifecycle-and-money.md) |
+| Testes | Vitest no monorepo | Um runner ESM para API e web — [ADR 0005](docs/adr/0005-vitest.md) |
+| Git | Commits na `main` com revisão local neste entregável | Em colaboração, branches + PRs — [ADR 0006](docs/adr/0006-git-workflow-main-vs-prs.md) |
 
-**Trade-off:** Nx traria geradores, affected e boundaries mais fortes — melhor em times grandes. Aqui priorizamos setup leve e foco no domínio/TDD; Nx seria a evolução natural de governança.
+**Store do front:** lista uma vez (`pageSize=1000`), pagina no cliente e aplica mutações no estado local — adequado ao volume de gestão; se crescer, paginação server-side.
 
-### Hexagonal no backend; contrato na borda
+**DI Nest:** casos de uso como providers via `useFactory` + `inject: [COUPON_REPOSITORY]` — DI na infra sem decorators Nest na application.
 
-**Decisão:** camadas em `apps/api` (`domain` → `application` → `infrastructure`). O Next consome só HTTP e `@audax/contracts`; **não** importa entidades de domínio.
-
-| Camada | Responsabilidade |
-|--------|------------------|
-| `domain` | Invariantes da entidade (percentual 1–100, FIXED com min order, etc.) |
-| `application` | Políticas de caso de uso (mutabilidade pós-uso, expiração ≥ dia corrente) |
-| `infrastructure` | HTTP Nest, Drizzle/Postgres, in-memory |
-
-**Trade-off:** compartilhar pacotes de domínio com o front aceleraria tipagem, mas duplicaria donos do modelo e acoplaria UI ao núcleo. Contracts + `CONTEXT.md` unificam a linguagem sem vazar o domínio.
-
-Casos de uso são registrados como **providers Nest** via `useFactory` + `inject: [COUPON_REPOSITORY]` no `CouponsModule` — DI na infra sem colocar decorators Nest na camada de application.
-
-### Store do front e `pageSize=1000`
-
-**Decisão:** a UI carrega a lista uma vez (`CLIENT_LIST_PAGE_SIZE = 1000`), guarda em store (`useSyncExternalStore`) e pagina no cliente; mutações (criar/atualizar/excluir) atualizam o estado local com a resposta da API, sem relistar.
-
-**Trade-off:** evita GET repetido a cada toggle/página — adequado ao CRUD de gestão com volume moderado. Se o catálogo crescer além disso, trocar para paginação server-side (ou `couponsStore.load({ force: true })` com janelas menores). O teto de `pageSize` na API Zod é 1000, alinhado a esse fetch.
-
-### Persistência: porta + Drizzle/Postgres + in-memory nos testes
-
-**Decisão:** porta `CouponRepository` no domínio; com `DATABASE_URL` usa `DrizzleCouponRepository` + Postgres; testes e CLI (`pnpm dev:memory` / `PERSISTENCE=memory`) usam `InMemoryCouponRepository`.
-
-**Trade-off:** Drizzle favorece SQL revisável (schema/migrations próximos do DBA). Prisma teria DX mais “mágica”; TypeORM foi evitado pelo risco de entidades decoradas misturadas ao domínio. Custo: cuidar de versões do Drizzle e manter SQL sob controle. In-memory facilita o primeiro run sem Docker; dados não sobrevivem ao restart.
-
-### Dinheiro em centavos; UI em reais
-
-**Decisão:** API e domínio usam inteiros em **centavos** (e percentual 1–100). A UI captura/exibe em **reais** e converte na borda HTTP.
-
-**Trade-off:** evita float para dinheiro; exige conversão explícita no front. Moeda implícita neste escopo: BRL.
-
-### Ciclo de vida e mutabilidade pós-uso
-
-**Decisão:** status operacional só `ACTIVE` | `INACTIVE` (sem `EXPIRED` — expiração é regra sobre data). Com `usageCount > 0`:
-
-- **não** deleta
-- **não** altera tipo/valor de desconto
-- **pode** alterar status e data de expiração
-
-Com `usageCount === 0`, delete e alteração de desconto são permitidos. A escrita do contador pertence à ponta consumidora; aqui o campo é fato de leitura para as políticas.
-
-**Trade-off:** políticas na `application` (não no domínio puro) mantêm a entidade focada em invariantes e a mutabilidade operacional explícita nos casos de uso. O front só valida preventivamente; a API é a fonte de verdade.
-
-### Escopo consciente
-
-Fora deste entregável: elegibilidade do cupom, aplicação em pedido e escrita de `usageCount`. Persistência cobre o CRUD de gestão; a ponta consumidora reutiliza o mesmo contrato/linguagem.
-
-### Detalhamento
-
-Decisões formais: [`docs/adr/`](docs/adr/). Linguagem do domínio: [`CONTEXT.md`](CONTEXT.md).
+**Escopo consciente:** fora deste entregável — elegibilidade, aplicação em pedido e escrita de `usageCount`.
