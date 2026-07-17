@@ -528,7 +528,7 @@ export default function CouponsPage() {
                   {couponPendingDelete.usageCount}{" "}
                   {couponPendingDelete.usageCount === 1
                     ? "caso de uso"
-                    : "casos de uso"}
+                    : "usos"}
                   .
                 </p>
                 <div className={styles.dialogActions}>
