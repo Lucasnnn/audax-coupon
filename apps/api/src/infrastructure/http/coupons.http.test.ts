@@ -7,8 +7,13 @@ import { AppModule } from "./app.module.js";
 
 describe("Coupons HTTP", () => {
   let app: INestApplication;
+  const previousPersistence = process.env.PERSISTENCE;
+  const previousDatabaseUrl = process.env.DATABASE_URL;
 
   beforeAll(async () => {
+    process.env.PERSISTENCE = "memory";
+    delete process.env.DATABASE_URL;
+
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -19,6 +24,16 @@ describe("Coupons HTTP", () => {
 
   afterAll(async () => {
     await app.close();
+    if (previousPersistence === undefined) {
+      delete process.env.PERSISTENCE;
+    } else {
+      process.env.PERSISTENCE = previousPersistence;
+    }
+    if (previousDatabaseUrl === undefined) {
+      delete process.env.DATABASE_URL;
+    } else {
+      process.env.DATABASE_URL = previousDatabaseUrl;
+    }
   });
 
   it("creates a coupon", async () => {
