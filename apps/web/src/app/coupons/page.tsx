@@ -14,6 +14,10 @@ import {
 } from "@/lib/datetime-local";
 import { isExpirationNotBeforeToday } from "@/lib/expiration-guard";
 import { centsToReais } from "@/lib/money";
+import {
+  sanitizePositiveDecimalInput,
+  sanitizePositiveIntegerInput,
+} from "@/lib/numeric-input";
 import { validateCreateCouponForm } from "@/lib/validate-create-coupon-form";
 import styles from "./coupons.module.css";
 
@@ -226,12 +230,20 @@ export default function CouponsPage() {
               <input
                 value={form.discountValue}
                 onChange={(e) =>
-                  setForm({ ...form, discountValue: e.target.value })
+                  setForm({
+                    ...form,
+                    discountValue:
+                      form.discountType === "PERCENTAGE"
+                        ? sanitizePositiveIntegerInput(e.target.value)
+                        : sanitizePositiveDecimalInput(e.target.value),
+                  })
                 }
                 placeholder={
                   form.discountType === "PERCENTAGE" ? "10" : "15,00"
                 }
-                inputMode="decimal"
+                inputMode={
+                  form.discountType === "PERCENTAGE" ? "numeric" : "decimal"
+                }
                 required
                 aria-required="true"
                 aria-label="Valor do desconto"
@@ -265,11 +277,15 @@ export default function CouponsPage() {
             <input
               value={form.minOrderAmount}
               onChange={(e) =>
-                setForm({ ...form, minOrderAmount: e.target.value })
+                setForm({
+                  ...form,
+                  minOrderAmount: sanitizePositiveDecimalInput(e.target.value),
+                })
               }
               placeholder={
                 form.discountType === "FIXED" ? "ex.: 50,00" : "ex.: 50,00"
               }
+              inputMode="decimal"
               required={form.discountType === "FIXED"}
               aria-required={form.discountType === "FIXED"}
             />
