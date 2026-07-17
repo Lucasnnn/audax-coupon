@@ -10,7 +10,8 @@
     "dev:memory": "PERSISTENCE=memory DATABASE_URL= tsx watch src/main.ts",
     "start": "tsx src/main.ts",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx src/infrastructure/persistence/drizzle/run-migrate.ts"
+    "db:migrate": "tsx src/infrastructure/persistence/drizzle/run-migrate.ts",
+    "db:seed": "tsx src/infrastructure/persistence/drizzle/run-seed.ts"
   },
   "devDependencies": {
     "@nestjs/testing": "^11.1.28",

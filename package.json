@@ -11,7 +11,8 @@
     "dev:api:memory": "pnpm --filter @audax/api dev:memory",
     "dev:web": "pnpm --filter @audax/web dev",
     "docker:up": "docker compose up --build",
-    "docker:down": "docker compose down"
+    "docker:down": "docker compose down",
+    "db:seed": "pnpm --filter @audax/api db:seed"
   },
   "devDependencies": {
     "turbo": "^2.5.4",

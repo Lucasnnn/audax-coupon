@@ -10,11 +10,37 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./apps/api/drizzle/0000_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+      - ./apps/api/drizzle/0001_seed_mock_coupons.sql:/docker-entrypoint-initdb.d/002_seed_mock_coupons.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U audax -d audax"]
       interval: 5s
       timeout: 5s
       retries: 10
+
+  seed:
+    image: postgres:16-alpine
+    environment:
+      PGPASSWORD: audax
+    volumes:
+      - ./apps/api/drizzle/0001_seed_mock_coupons.sql:/seed.sql:ro
+    entrypoint:
+      [
+        "psql",
+        "-h",
+        "postgres",
+        "-U",
+        "audax",
+        "-d",
+        "audax",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-f",
+        "/seed.sql",
+      ]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
 
   api:
     build:
@@ -28,6 +54,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      seed:
+        condition: service_completed_successfully
 
   web:
     build:

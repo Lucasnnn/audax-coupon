@@ -90,6 +90,7 @@ Com `DATABASE_URL` definido, a API aplica o schema na subida. Opcionalmente:
 
 ```bash
 pnpm --filter @audax/api db:migrate
+pnpm db:seed   # dump com 30 cupons mock (incl. USEDDEMO12 usage_count=12)
 ```
 
 ### Stack completa com Docker
@@ -98,6 +99,8 @@ pnpm --filter @audax/api db:migrate
 pnpm docker:up
 # ou: docker compose up --build
 ```
+
+O serviço `seed` roda após o Postgres ficar healthy e aplica o dump idempotente `apps/api/drizzle/0001_seed_mock_coupons.sql` (**30 cupons** mockados, incluindo **`USEDDEMO12`** com **`usage_count = 12`** para demo pós-uso). Em volume novo, o mesmo SQL também entra via `docker-entrypoint-initdb.d`.
 
 | Serviço  | URL / porta |
 |----------|-------------|
@@ -120,8 +123,9 @@ pnpm docker:down
 | `pnpm dev` | Local: API + web (Postgres se `DATABASE_URL` estiver no ambiente) |
 | `pnpm dev:api` | Local: só API |
 | `pnpm dev:web` | Local: só web |
-| `pnpm docker:up` | Stack completa (Postgres + API + web) |
+| `pnpm docker:up` | Stack completa (Postgres + seed + API + web) |
 | `pnpm docker:down` | Para a stack Docker |
+| `pnpm db:seed` | Aplica dump de 30 cupons mock no Postgres local |
 
 ## Testes
 
