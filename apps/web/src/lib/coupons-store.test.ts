@@ -4,6 +4,7 @@ import { couponsApi } from "./coupons-api";
 import {
   couponsStore,
   paginateCoupons,
+  shouldFetchNextCouponBatch,
   sortCouponsByCreatedAtDesc,
 } from "./coupons-store";
 
@@ -147,6 +148,45 @@ describe("coupons store helpers", () => {
     });
     await pending;
     expect(couponsStore.getSnapshot().loadingMore).toBe(false);
+  });
+
+  it("shouldFetchNextCouponBatch when on last page while truncated", () => {
+    expect(
+      shouldFetchNextCouponBatch({
+        truncated: true,
+        loadingMore: false,
+        sourceCount: 1000,
+        page: 100,
+        totalPages: 100,
+      }),
+    ).toBe(true);
+    expect(
+      shouldFetchNextCouponBatch({
+        truncated: true,
+        loadingMore: false,
+        sourceCount: 1000,
+        page: 99,
+        totalPages: 100,
+      }),
+    ).toBe(false);
+    expect(
+      shouldFetchNextCouponBatch({
+        truncated: true,
+        loadingMore: true,
+        sourceCount: 1000,
+        page: 100,
+        totalPages: 100,
+      }),
+    ).toBe(false);
+    expect(
+      shouldFetchNextCouponBatch({
+        truncated: false,
+        loadingMore: false,
+        sourceCount: 1000,
+        page: 100,
+        totalPages: 100,
+      }),
+    ).toBe(false);
   });
 
   it("keeps newest coupon at the top on add", () => {
