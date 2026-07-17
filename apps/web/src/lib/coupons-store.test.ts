@@ -45,6 +45,24 @@ describe("coupons store helpers", () => {
     expect(paginateCoupons(items, 1, 2).total).toBe(3);
   });
 
+  it("uses API total when list is truncated at page size ceiling", async () => {
+    const items = Array.from({ length: 1000 }, (_, index) =>
+      coupon({ id: String(index), code: `C${String(index).padStart(4, "0")}` }),
+    );
+    vi.spyOn(couponsApi, "list").mockResolvedValueOnce({
+      items,
+      total: 1500,
+      page: 1,
+      pageSize: 1000,
+    });
+
+    await couponsStore.load({ force: true });
+    const snap = couponsStore.getSnapshot();
+    expect(snap.items).toHaveLength(1000);
+    expect(snap.total).toBe(1500);
+    expect(snap.truncated).toBe(true);
+  });
+
   it("updates local state on add replace and remove", () => {
     couponsStore.add(coupon({ id: "1", code: "KEEP" }));
     couponsStore.add(coupon({ id: "2", code: "GONE" }));
