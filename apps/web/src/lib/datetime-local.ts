@@ -29,8 +29,11 @@ export function formatExpirationDisplay(iso: string | null): string {
   return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()}`;
 }
 
+/** Earliest datetime-local value allowed by the UTC “not before today” policy. */
 export function minDatetimeLocalToday(now = new Date()): string {
-  const pad = (value: number) => String(value).padStart(2, "0");
+  const startOfUtcToday = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+  );
 
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T00:00`;
+  return toDatetimeLocalValue(startOfUtcToday.toISOString());
 }

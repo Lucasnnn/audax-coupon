@@ -7,9 +7,9 @@ export function isExpirationNotBeforeToday(
     return false;
   }
 
-  return startOfLocalDay(date) >= startOfLocalDay(now);
+  return startOfUtcDay(date) >= startOfUtcDay(now);
 }
 
-function startOfLocalDay(date: Date): number {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+function startOfUtcDay(date: Date): number {
+  return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
 }
