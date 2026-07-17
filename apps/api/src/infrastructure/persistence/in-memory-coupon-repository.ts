@@ -27,9 +27,11 @@ export class InMemoryCouponRepository implements CouponRepository {
   }
 
   async list(params: ListCouponsParams): Promise<ListCouponsResult> {
-    const all = [...this.coupons.values()].sort((a, b) =>
-      a.code.localeCompare(b.code),
-    );
+    const all = [...this.coupons.values()]
+      .reverse()
+      .sort(
+        (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+      );
     const start = (params.page - 1) * params.pageSize;
     const items = all.slice(start, start + params.pageSize);
 

@@ -30,6 +30,7 @@ export type ReconstituteCouponProps = {
   usageCount: number;
   minOrderAmount?: number;
   expiresAt?: Date;
+  createdAt?: Date;
 };
 
 export class Coupon {
@@ -48,6 +49,7 @@ export class Coupon {
     readonly usageCount: number,
     minOrderAmount: number | undefined,
     expiresAt: Date | undefined,
+    readonly createdAt: Date,
   ) {
     this._discountType = discountType;
     this._discountValue = discountValue;
@@ -116,6 +118,7 @@ export class Coupon {
       0,
       props.minOrderAmount,
       props.expiresAt,
+      new Date(),
     );
   }
 
@@ -147,6 +150,7 @@ export class Coupon {
       props.usageCount,
       props.minOrderAmount,
       props.expiresAt,
+      props.createdAt ?? new Date(0),
     );
   }
 
