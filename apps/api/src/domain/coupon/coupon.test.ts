@@ -27,6 +27,30 @@ describe("Coupon", () => {
     ).toThrow(/percentual/i);
   });
 
+  it("rejects reconstituting a coupon that breaks discount invariants", () => {
+    expect(() =>
+      Coupon.reconstitute({
+        id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        code: "BADPCT",
+        discountType: "PERCENTAGE",
+        discountValue: 150,
+        status: "ACTIVE",
+        usageCount: 0,
+      }),
+    ).toThrow(/percentual/i);
+
+    expect(() =>
+      Coupon.reconstitute({
+        id: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+        code: "NEGUSE",
+        discountType: "PERCENTAGE",
+        discountValue: 10,
+        status: "ACTIVE",
+        usageCount: -1,
+      }),
+    ).toThrow(/usage count|contagem de uso/i);
+  });
+
   it("rejects a fixed coupon without a min order amount", () => {
     expect(() =>
       Coupon.create({
