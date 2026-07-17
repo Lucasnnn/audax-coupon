@@ -7,10 +7,11 @@ export type CouponsStoreState = {
   items: CouponDto[];
   /** Total reported by the API (may exceed items.length when truncated). */
   total: number;
-  /** True when the API has more coupons than CLIENT_LIST_PAGE_SIZE. */
+  /** True when the API has more coupons than currently cached. */
   truncated: boolean;
   loaded: boolean;
   loading: boolean;
+  loadingMore: boolean;
   error: string | null;
 };
 
@@ -22,6 +23,7 @@ let state: CouponsStoreState = {
   truncated: false,
   loaded: false,
   loading: false,
+  loadingMore: false,
   error: null,
 };
 
@@ -82,6 +84,7 @@ export const couponsStore = {
       truncated: false,
       loaded: false,
       loading: false,
+      loadingMore: false,
       error: null,
     };
     emit();
@@ -117,12 +120,12 @@ export const couponsStore = {
   },
 
   async loadMore(): Promise<void> {
-    if (state.loading || !state.truncated) {
+    if (state.loading || state.loadingMore || !state.truncated) {
       return;
     }
 
     const nextPage = Math.floor(state.items.length / CLIENT_LIST_PAGE_SIZE) + 1;
-    setState({ loading: true, error: null });
+    setState({ loadingMore: true, error: null });
     try {
       const result = await couponsApi.list(nextPage, CLIENT_LIST_PAGE_SIZE);
       const seen = new Set(state.items.map((item) => item.id));
@@ -134,14 +137,15 @@ export const couponsStore = {
       setState({
         items,
         total: result.total,
-        truncated: result.total > items.length,
+        truncated:
+          appended.length === 0 ? false : result.total > items.length,
         loaded: true,
-        loading: false,
+        loadingMore: false,
         error: null,
       });
     } catch (err) {
       setState({
-        loading: false,
+        loadingMore: false,
         error:
           err instanceof Error ? err.message : "Falha ao carregar cupons",
       });
