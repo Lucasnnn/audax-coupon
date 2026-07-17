@@ -1,4 +1,8 @@
 import { CouponErrors } from "./coupon-errors.js";
+
+/** PostgreSQL INTEGER max — valores monetários em centavos. */
+export const MAX_MONEY_CENTS = 2_147_483_647;
+
 export type DiscountType = "PERCENTAGE" | "FIXED";
 export type CouponStatus = "ACTIVE" | "INACTIVE";
 
@@ -164,12 +168,22 @@ export class Coupon {
       ) {
         throw new Error(CouponErrors.fixedPositive);
       }
+      if (props.discountValue > MAX_MONEY_CENTS) {
+        throw new Error(CouponErrors.moneyAmountTooLarge);
+      }
       if (props.minOrderAmount === undefined) {
         throw new Error(CouponErrors.fixedRequiresMin);
       }
       if (props.minOrderAmount < props.discountValue) {
         throw new Error(CouponErrors.minOrderTooLow);
       }
+    }
+
+    if (
+      props.minOrderAmount !== undefined &&
+      props.minOrderAmount > MAX_MONEY_CENTS
+    ) {
+      throw new Error(CouponErrors.moneyAmountTooLarge);
     }
   }
 }

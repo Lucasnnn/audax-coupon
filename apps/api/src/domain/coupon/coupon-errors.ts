@@ -10,6 +10,8 @@ export const CouponErrors = {
     "O valor do desconto fixo deve ser um inteiro estritamente positivo",
   minOrderTooLow:
     "O valor mínimo do pedido deve ser maior ou igual ao valor do desconto fixo",
+  moneyAmountTooLarge:
+    "O valor monetário ultrapassa o limite máximo permitido",
   expirationBeforeToday: "A data de expiração não pode ser anterior a hoje",
   expirationNotInFuture: "A data de expiração deve ser um instante futuro",
   usedCannotDelete: "Cupons já utilizados não podem ser excluídos",
