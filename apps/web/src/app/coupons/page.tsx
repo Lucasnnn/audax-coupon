@@ -13,7 +13,7 @@ import {
   toDatetimeLocalValue,
 } from "@/lib/datetime-local";
 import { isExpirationNotBeforeToday } from "@/lib/expiration-guard";
-import { centsToReais } from "@/lib/money";
+import { centsToReais, formatReaisInput } from "@/lib/money";
 import {
   sanitizePositiveDecimalInput,
   sanitizePositiveIntegerInput,
@@ -279,13 +279,11 @@ export default function CouponsPage() {
               onChange={(e) =>
                 setForm({
                   ...form,
-                  minOrderAmount: sanitizePositiveDecimalInput(e.target.value),
+                  minOrderAmount: formatReaisInput(e.target.value),
                 })
               }
-              placeholder={
-                form.discountType === "FIXED" ? "ex.: 50,00" : "ex.: 50,00"
-              }
-              inputMode="decimal"
+              placeholder="0,00"
+              inputMode="numeric"
               required={form.discountType === "FIXED"}
               aria-required={form.discountType === "FIXED"}
             />
