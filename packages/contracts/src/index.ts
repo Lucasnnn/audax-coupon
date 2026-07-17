@@ -25,6 +25,7 @@ export type UpdateCouponRequest = {
   discountType?: DiscountType;
   discountValue?: number;
   minOrderAmount?: number;
+  expiresAt?: string | null;
 };
 
 export type PaginatedCoupons = {

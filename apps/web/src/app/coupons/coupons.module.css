@@ -123,6 +123,22 @@
   cursor: pointer;
 }
 
+.inlineField {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.inlineField input {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.45rem 0.55rem;
+  background: #fff;
+  color: #111;
+  font-size: 0.85rem;
+}
+
 .badgeOk,
 .badgeOff {
   font-size: 0.75rem;
