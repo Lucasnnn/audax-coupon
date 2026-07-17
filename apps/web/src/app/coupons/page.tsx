@@ -13,7 +13,8 @@ import {
   toDatetimeLocalValue,
 } from "@/lib/datetime-local";
 import { isExpirationNotBeforeToday } from "@/lib/expiration-guard";
-import { centsToReais, reaisToCents } from "@/lib/money";
+import { centsToReais } from "@/lib/money";
+import { validateCreateCouponForm } from "@/lib/validate-create-coupon-form";
 import styles from "./coupons.module.css";
 
 const PAGE_SIZE = 10;
@@ -81,30 +82,8 @@ export default function CouponsPage() {
     setActionError(null);
 
     try {
-      const discountValue =
-        form.discountType === "FIXED"
-          ? reaisToCents(form.discountValue)
-          : Number(form.discountValue);
-      const minOrderAmount =
-        form.minOrderAmount.trim() === ""
-          ? undefined
-          : reaisToCents(form.minOrderAmount);
+      const validated = validateCreateCouponForm(form);
 
-      if (!form.code.trim()) {
-        throw new Error("O código do cupom é obrigatório");
-      }
-      if (
-        form.discountType === "PERCENTAGE" &&
-        !Number.isFinite(discountValue)
-      ) {
-        throw new Error("O valor do desconto deve ser um número");
-      }
-      if (
-        form.discountType === "FIXED" &&
-        (minOrderAmount === undefined || !Number.isFinite(minOrderAmount))
-      ) {
-        throw new Error("Desconto fixo exige um valor mínimo de pedido");
-      }
       if (
         form.expiresAt.trim() !== "" &&
         !isExpirationNotBeforeToday(form.expiresAt)
@@ -113,10 +92,7 @@ export default function CouponsPage() {
       }
 
       const created = await couponsApi.create({
-        code: form.code,
-        discountType: form.discountType,
-        discountValue,
-        minOrderAmount,
+        ...validated,
         expiresAt:
           form.expiresAt.trim() === ""
             ? undefined
