@@ -13,10 +13,14 @@ export function formatReaisInput(raw: string): string {
 }
 
 export function reaisToCents(value: string): number {
-  const normalized = value.trim().replace(",", ".");
-  if (normalized === "") {
+  const trimmed = value.trim();
+  if (trimmed === "") {
     throw new Error("O valor monetário deve ser um número");
   }
+
+  const normalized = trimmed.includes(",")
+    ? trimmed.replace(/\./g, "").replace(",", ".")
+    : trimmed;
 
   const amount = Number(normalized);
 
