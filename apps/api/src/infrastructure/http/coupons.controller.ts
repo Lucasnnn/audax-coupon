@@ -1,5 +1,6 @@
 import {
   Body,
+  ConflictException,
   Controller,
   Delete,
   Get,
@@ -104,8 +105,14 @@ export class CouponsController {
   async remove(@Param("id") id: string) {
     try {
       await this.deleteCoupon.execute(id);
-    } catch {
-      throw new NotFoundException("Coupon not found");
+    } catch (error) {
+      if (error instanceof Error && /not found/i.test(error.message)) {
+        throw new NotFoundException("Coupon not found");
+      }
+      if (error instanceof Error && /cannot be deleted/i.test(error.message)) {
+        throw new ConflictException(error.message);
+      }
+      throw error;
     }
   }
 
