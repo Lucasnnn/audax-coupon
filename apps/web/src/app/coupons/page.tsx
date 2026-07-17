@@ -312,20 +312,53 @@ export default function CouponsPage() {
                 <button type="button" onClick={() => void saveExpiration(coupon)}>
                   Salvar expiração
                 </button>
-                <button type="button" onClick={() => void toggleStatus(coupon)}>
-                  {coupon.status === "ACTIVE" ? "Desativar" : "Ativar"}
+                <button type="button" onClick={() => void saveExpiration(coupon)}>
+                  Salvar expiração
                 </button>
+                <label className={styles.toggle}>
+                  <span className={styles.toggleLabel}>
+                    {coupon.status === "ACTIVE" ? "Ativo" : "Inativo"}
+                  </span>
+                  <input
+                    type="checkbox"
+                    role="switch"
+                    checked={coupon.status === "ACTIVE"}
+                    aria-label={
+                      coupon.status === "ACTIVE"
+                        ? "Desativar cupom"
+                        : "Ativar cupom"
+                    }
+                    onChange={() => void toggleStatus(coupon)}
+                  />
+                  <span className={styles.toggleTrack} aria-hidden="true" />
+                </label>
                 {canDeleteCoupon(coupon.usageCount) ? (
                   <button
                     type="button"
-                    className={styles.danger}
+                    className={styles.iconDanger}
+                    aria-label="Remover cupom"
+                    title="Remover"
                     onClick={() => void removeCoupon(coupon)}
                   >
-                    Remover
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="18"
+                      height="18"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M3 6h18" />
+                      <path d="M8 6V4h8v2" />
+                      <path d="M19 6l-1 14H6L5 6" />
+                      <path d="M10 11v6" />
+                      <path d="M14 11v6" />
+                    </svg>
                   </button>
-                ) : (
-                  <span className={styles.muted}>Usado — sem remoção</span>
-                )}
+                ) : null}
               </div>
             </li>
             );
