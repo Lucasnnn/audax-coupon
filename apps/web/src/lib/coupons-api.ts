@@ -35,6 +35,9 @@ export const couponsApi = {
   list(page = 1, pageSize = 10) {
     return request<PaginatedCoupons>(`/coupons?page=${page}&pageSize=${pageSize}`);
   },
+  get(id: string) {
+    return request<CouponDto>(`/coupons/${id}`);
+  },
   create(body: CreateCouponRequest) {
     return request<CouponDto>("/coupons", {
       method: "POST",
