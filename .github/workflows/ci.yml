@@ -39,5 +39,8 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      - name: Lint web
+        run: pnpm --filter @audax/web lint
+
       - name: Production build
         run: pnpm --filter @audax/web build
