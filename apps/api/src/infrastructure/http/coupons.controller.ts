@@ -131,6 +131,7 @@ export class CouponsController {
       usageCount: coupon.usageCount,
       minOrderAmount: coupon.minOrderAmount ?? null,
       expiresAt: coupon.expiresAt ? coupon.expiresAt.toISOString() : null,
+      createdAt: coupon.createdAt.toISOString(),
     };
   }
 }

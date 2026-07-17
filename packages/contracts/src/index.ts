@@ -13,6 +13,7 @@ export type CouponDto = {
   usageCount: number;
   minOrderAmount: number | null;
   expiresAt: string | null;
+  createdAt: string;
 };
 
 export type CreateCouponRequest = {
