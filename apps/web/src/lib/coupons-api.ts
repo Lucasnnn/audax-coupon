@@ -4,6 +4,7 @@ import type {
   PaginatedCoupons,
   UpdateCouponRequest,
 } from "@audax/contracts";
+import { parseApiErrorMessage } from "./parse-api-error";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
@@ -18,7 +19,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(text || `Request failed with ${response.status}`);
+    throw new Error(
+      parseApiErrorMessage(text) || `Request failed with ${response.status}`,
+    );
   }
 
   if (response.status === 204) {
