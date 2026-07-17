@@ -1,5 +1,9 @@
 export function reaisToCents(value: string): number {
   const normalized = value.trim().replace(",", ".");
+  if (normalized === "") {
+    throw new Error("Monetary value must be a number");
+  }
+
   const amount = Number(normalized);
 
   if (!Number.isFinite(amount)) {
