@@ -13,7 +13,11 @@ import {
   toDatetimeLocalValue,
 } from "@/lib/datetime-local";
 import { isExpirationNotBeforeToday } from "@/lib/expiration-guard";
-import { centsToReais, formatReaisInput } from "@/lib/money";
+import {
+  centsToReais,
+  formatReaisInput,
+  MAX_REAIS_INPUT_CENTS,
+} from "@/lib/money";
 import {
   sanitizePositiveDecimalInput,
   sanitizePositiveIntegerInput,
@@ -43,6 +47,7 @@ export default function CouponsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
+  const [minOrderLimitWarning, setMinOrderLimitWarning] = useState(false);
   const [expirationDrafts, setExpirationDrafts] = useState<
     Record<string, string>
   >({});
@@ -107,6 +112,7 @@ export default function CouponsPage() {
 
       couponsStore.add(created);
       setForm(emptyForm);
+      setMinOrderLimitWarning(false);
       setPage(1);
     } catch (err) {
       setActionError(err instanceof Error ? err.message : "Falha ao criar cupom");
@@ -265,7 +271,9 @@ export default function CouponsPage() {
             </div>
           </label>
 
-          <label>
+          <label
+            className={`${styles.minOrderField}${minOrderLimitWarning ? ` ${styles.minOrderFieldWarn}` : ""}`}
+          >
             <span className={styles.fieldLabel}>
               Pedido mínimo (R$)
               {form.discountType === "FIXED" ? (
@@ -276,17 +284,32 @@ export default function CouponsPage() {
             </span>
             <input
               value={form.minOrderAmount}
-              onChange={(e) =>
+              onChange={(e) => {
+                const formatted = formatReaisInput(e.target.value);
+                setMinOrderLimitWarning(formatted.exceededMax);
                 setForm({
                   ...form,
-                  minOrderAmount: formatReaisInput(e.target.value),
-                })
-              }
+                  minOrderAmount: formatted.value,
+                });
+              }}
               placeholder="0,00"
               inputMode="numeric"
               required={form.discountType === "FIXED"}
               aria-required={form.discountType === "FIXED"}
+              aria-describedby={
+                minOrderLimitWarning ? "min-order-limit-warning" : undefined
+              }
             />
+            {minOrderLimitWarning ? (
+              <p
+                id="min-order-limit-warning"
+                className={styles.fieldWarning}
+                role="status"
+              >
+                Esse valor não pode ultrapassar R${" "}
+                {centsToReais(MAX_REAIS_INPUT_CENTS)}
+              </p>
+            ) : null}
           </label>
 
           <label>
