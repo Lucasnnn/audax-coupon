@@ -4,6 +4,8 @@ export const CouponErrors = {
   codeUnique: "O código do cupom deve ser único",
   percentageRange: "O valor percentual deve ser um inteiro entre 1 e 100",
   fixedRequiresMin: "Desconto fixo exige um valor mínimo de pedido",
+  fixedPositive:
+    "O valor do desconto fixo deve ser um inteiro estritamente positivo",
   minOrderTooLow:
     "O valor mínimo do pedido deve ser maior ou igual ao valor do desconto fixo",
   expirationBeforeToday: "A data de expiração não pode ser anterior a hoje",

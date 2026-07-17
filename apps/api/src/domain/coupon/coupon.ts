@@ -140,6 +140,12 @@ export class Coupon {
     }
 
     if (props.discountType === "FIXED") {
+      if (
+        !Number.isInteger(props.discountValue) ||
+        props.discountValue <= 0
+      ) {
+        throw new Error(CouponErrors.fixedPositive);
+      }
       if (props.minOrderAmount === undefined) {
         throw new Error(CouponErrors.fixedRequiresMin);
       }

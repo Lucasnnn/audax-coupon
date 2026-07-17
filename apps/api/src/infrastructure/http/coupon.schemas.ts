@@ -22,7 +22,8 @@ export const createCouponBodySchema = z.object({
       required_error: "O valor do desconto deve ser um número",
       invalid_type_error: "O valor do desconto deve ser um número",
     })
-    .int("O valor do desconto deve ser um inteiro"),
+    .int("O valor do desconto deve ser um inteiro")
+    .positive("O valor do desconto deve ser positivo"),
   minOrderAmount: z
     .number({
       invalid_type_error: "O valor mínimo do pedido deve ser um número",
@@ -42,6 +43,7 @@ export const updateCouponBodySchema = z
         invalid_type_error: "O valor do desconto deve ser um número",
       })
       .int("O valor do desconto deve ser um inteiro")
+      .positive("O valor do desconto deve ser positivo")
       .optional(),
     minOrderAmount: z
       .number({
