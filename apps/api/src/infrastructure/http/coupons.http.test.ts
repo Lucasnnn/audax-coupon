@@ -121,4 +121,26 @@ describe("Coupons HTTP", () => {
       .get(`/coupons/${created.body.id}`)
       .expect(404);
   });
+
+  it("rejects deleting a used coupon", async () => {
+    const { COUPON_REPOSITORY } = await import("./tokens.js");
+    const { Coupon } = await import("../../domain/coupon/coupon.js");
+    const repository = app.get(COUPON_REPOSITORY);
+
+    const used = Coupon.reconstitute({
+      id: "22222222-2222-2222-2222-222222222222",
+      code: "USEDHTTP",
+      discountType: "PERCENTAGE",
+      discountValue: 10,
+      status: "ACTIVE",
+      usageCount: 1,
+      minOrderAmount: undefined,
+      expiresAt: undefined,
+    });
+    await repository.save(used);
+
+    await request(app.getHttpServer())
+      .delete(`/coupons/${used.id}`)
+      .expect(409);
+  });
 });
