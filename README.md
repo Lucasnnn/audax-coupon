@@ -1,38 +1,69 @@
 # Audax — gestão de cupons
 
-Monorepo (Turborepo + pnpm) com API Nest hexagonal (`apps/api`), web Next.js (`apps/web`) e contratos compartilhados (`packages/contracts`).
+Monorepo (Turborepo + pnpm) para CRUD de cupons de desconto: API Nest em arquitetura hexagonal (`apps/api`), UI Next.js (`apps/web`) e contratos compartilhados (`packages/contracts`).
+
+Este contexto cobre **cadastro e ciclo de vida operacional** do cupom. Elegibilidade e aplicação do desconto em pedido ficam fora do escopo (outra ponta consumidora).
 
 ## Pré-requisitos
 
 - Node.js 22+
-- pnpm 9 (`corepack enable`)
-- Docker + Docker Compose (para stack completa com Postgres)
+- pnpm 9 (`corepack enable && corepack prepare pnpm@9.15.0 --activate`)
+- Docker + Docker Compose — só se for usar Postgres / stack Docker
 
-## Subir tudo com Docker
-
-Na raiz do repositório:
+## Setup
 
 ```bash
-docker compose up --build
+pnpm install
 ```
 
-Serviços:
-
-| Serviço   | URL / porta              |
-|-----------|--------------------------|
-| Web       | http://localhost:3000    |
-| API       | http://localhost:3001    |
-| Postgres  | localhost:5432 (`audax` / `audax` / db `audax`) |
-
-A API aplica o schema de cupons na subida quando `DATABASE_URL` está definido. O front no browser chama a API em `http://localhost:3001` (`NEXT_PUBLIC_API_URL`).
-
-Parar:
+Para Postgres (local com banco ou Docker), também:
 
 ```bash
-docker compose down
+cp .env.example .env
 ```
 
-## Desenvolvimento local (sem Docker da app)
+Variáveis principais:
+
+| Variável | Uso |
+|----------|-----|
+| `PERSISTENCE` | `memory` força repositório in-memory (mesmo com `DATABASE_URL` no ambiente). |
+| `DATABASE_URL` | Postgres da API. Ausente + sem `PERSISTENCE=memory` → in-memory. |
+| `PORT` | Porta da API (padrão `3001`). |
+| `NEXT_PUBLIC_API_URL` | URL da API no browser (padrão `http://localhost:3001`). |
+
+Credenciais locais do Postgres (Compose): usuário/senha/db `audax`, porta `5432`.
+
+## Execução
+
+Há três caminhos: **local sem banco**, **local com Postgres** e **Docker completo**.
+
+### Desenvolvimento local — sem banco (in-memory)
+
+Não precisa de Docker, `.env` nem Postgres. Dados ficam só na memória do processo (somem ao reiniciar).
+
+```bash
+pnpm install
+pnpm dev:memory
+```
+
+| Serviço | URL |
+|---------|-----|
+| Web     | http://localhost:3000 |
+| API     | http://localhost:3001 (`persistence: memory` no log) |
+
+Só a API:
+
+```bash
+pnpm dev:api:memory
+```
+
+Equivalente manual (bash):
+
+```bash
+PERSISTENCE=memory DATABASE_URL= pnpm dev
+```
+
+### Desenvolvimento local — com Postgres
 
 1. Suba só o banco:
 
@@ -40,46 +71,127 @@ docker compose down
 docker compose up postgres -d
 ```
 
-2. Configure o ambiente:
+2. Configure e inicie:
 
 ```bash
 cp .env.example .env
-```
-
-3. Instale e rode:
-
-```bash
-pnpm install
-pnpm --filter @audax/api db:migrate
+# bash / Git Bash
+set -a && source .env && set +a
 pnpm dev
 ```
 
-- API: `http://localhost:3001` (Postgres via `DATABASE_URL`)
-- Web: `http://localhost:3000`
+| Serviço  | URL / porta |
+|----------|-------------|
+| Web      | http://localhost:3000 |
+| API      | http://localhost:3001 (`persistence: postgres` no log) |
+| Postgres | `localhost:5432` |
 
-Sem `DATABASE_URL`, a API usa repositório **in-memory** (útil para testes HTTP).
+Com `DATABASE_URL` definido, a API aplica o schema na subida. Opcionalmente:
+
+```bash
+pnpm --filter @audax/api db:migrate
+```
+
+### Stack completa com Docker
+
+```bash
+pnpm docker:up
+# ou: docker compose up --build
+```
+
+| Serviço  | URL / porta |
+|----------|-------------|
+| Web      | http://localhost:3000 |
+| API      | http://localhost:3001 |
+| Postgres | `localhost:5432` |
+
+Parar:
+
+```bash
+pnpm docker:down
+```
+
+### Scripts úteis
+
+| Comando | Efeito |
+|---------|--------|
+| `pnpm dev:memory` | Local: API + web **in-memory** (sem banco) |
+| `pnpm dev:api:memory` | Local: só API in-memory |
+| `pnpm dev` | Local: API + web (Postgres se `DATABASE_URL` estiver no ambiente) |
+| `pnpm dev:api` | Local: só API |
+| `pnpm dev:web` | Local: só web |
+| `pnpm docker:up` | Stack completa (Postgres + API + web) |
+| `pnpm docker:down` | Para a stack Docker |
 
 ## Testes
 
 ```bash
-pnpm test
+pnpm test          # monorepo (Turbo)
+pnpm test:api      # só @audax/api
 ```
 
-Casos de uso e HTTP usam adapter **in-memory** (sem Postgres), conforme ADR `0003`. O mapper Drizzle tem teste de round-trip isolado.
+- Runner: **Vitest** em todo o monorepo.
+- Domínio, casos de uso e HTTP usam **`InMemoryCouponRepository`** — sem Postgres e sem Docker nos testes.
+- O mapper Drizzle tem teste de round-trip isolado; a integração real com Postgres fica no caminho de execução (Docker / local com `DATABASE_URL`).
 
-## Persistência
+## Estrutura
 
-- Porta: `CouponRepository` no domínio
-- Produção / Docker: `DrizzleCouponRepository` + Postgres
-- Testes / fallback: `InMemoryCouponRepository`
-- Schema SQL: `apps/api/drizzle/0000_init.sql`
+```
+apps/api/          Nest — domain / application / infrastructure
+apps/web/          Next.js — UI de gestão
+packages/contracts DTOs, enums e códigos de erro compartilhados
+docs/adr/          decisões de arquitetura
+CONTEXT.md         linguagem ubíqua do domínio
+```
 
-## Decisões relevantes
+## Decisões de arquitetura e trade-offs
 
-- `CONTEXT.md` e `docs/adr/` descrevem o domínio e as escolhas (hexagonal, regras na application, Drizzle, fluxo git).
-- Valores monetários: API em **centavos**; UI em **reais**.
-- Após uso (`usageCount > 0`): sem delete; desconto imutável; status e expiração editáveis.
+### Monorepo (Turborepo + pnpm)
 
-## Escopo consciente
+**Decisão:** um repositório com `apps/*` e `packages/*`, orquestrado por Turbo.
 
-Elegibilidade/aplicação do cupom em pedido fica fora deste contexto. Persistência Drizzle cobre o CRUD de gestão; a ponta consumidora escreveria `usageCount`.
+**Trade-off:** Nx traria geradores, affected e boundaries mais fortes — melhor em times grandes. Aqui priorizamos setup leve e foco no domínio/TDD; Nx seria a evolução natural de governança.
+
+### Hexagonal no backend; contrato na borda
+
+**Decisão:** camadas em `apps/api` (`domain` → `application` → `infrastructure`). O Next consome só HTTP e `@audax/contracts`; **não** importa entidades de domínio.
+
+| Camada | Responsabilidade |
+|--------|------------------|
+| `domain` | Invariantes da entidade (percentual 1–100, FIXED com min order, etc.) |
+| `application` | Políticas de caso de uso (mutabilidade pós-uso, expiração ≥ dia corrente) |
+| `infrastructure` | HTTP Nest, Drizzle/Postgres, in-memory |
+
+**Trade-off:** compartilhar pacotes de domínio com o front aceleraria tipagem, mas duplicaria donos do modelo e acoplaria UI ao núcleo. Contracts + `CONTEXT.md` unificam a linguagem sem vazar o domínio.
+
+### Persistência: porta + Drizzle/Postgres + in-memory nos testes
+
+**Decisão:** porta `CouponRepository` no domínio; produção/Docker com `DrizzleCouponRepository` + Postgres; testes e CLI (`pnpm dev:memory` / `PERSISTENCE=memory`) com `InMemoryCouponRepository`.
+
+**Trade-off:** Drizzle favorece SQL revisável (schema/migrations próximos do DBA). Prisma teria DX mais “mágica”; TypeORM foi evitado pelo risco de entidades decoradas misturadas ao domínio. Custo: cuidar de versões do Drizzle e manter SQL sob controle. In-memory facilita o primeiro run sem Docker; dados não sobrevivem ao restart.
+
+### Dinheiro em centavos; UI em reais
+
+**Decisão:** API e domínio usam inteiros em **centavos** (e percentual 1–100). A UI captura/exibe em **reais** e converte na borda HTTP.
+
+**Trade-off:** evita float para dinheiro; exige conversão explícita no front. Moeda implícita neste escopo: BRL.
+
+### Ciclo de vida e mutabilidade pós-uso
+
+**Decisão:** status operacional só `ACTIVE` | `INACTIVE` (sem `EXPIRED` — expiração é regra sobre data). Com `usageCount > 0`:
+
+- **não** deleta
+- **não** altera tipo/valor de desconto
+- **pode** alterar status e data de expiração
+
+Com `usageCount === 0`, delete e alteração de desconto são permitidos. A escrita do contador pertence à ponta consumidora; aqui o campo é fato de leitura para as políticas.
+
+**Trade-off:** políticas na `application` (não no domínio puro) mantêm a entidade focada em invariantes e a mutabilidade operacional explícita nos casos de uso. O front só valida preventivamente; a API é a fonte de verdade.
+
+### Escopo consciente
+
+Fora deste entregável: elegibilidade do cupom, aplicação em pedido e escrita de `usageCount`. Persistência cobre o CRUD de gestão; a ponta consumidora reutiliza o mesmo contrato/linguagem.
+
+### Detalhamento
+
+Decisões formais: [`docs/adr/`](docs/adr/). Linguagem do domínio: [`CONTEXT.md`](CONTEXT.md).
