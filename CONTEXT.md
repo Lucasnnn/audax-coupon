@@ -33,7 +33,7 @@ Valor mínimo de pedido exigido pela política do cupom, em centavos. Obrigatór
 _Avoid_: Threshold, floor (como termos canônicos); float para dinheiro
 
 **Money (centavos)**:
-Representação de valores monetários como inteiro em centavos (ex.: `1500` = R$ 15,00). Usada em Discount value quando `FIXED` e em Minimum order amount. Moeda implícita: BRL neste escopo.
+Representação de valores monetários como inteiro em centavos (ex.: `1500` = R$ 15,00). Usada em Discount value quando `FIXED` e em Minimum order amount no contrato/API. Moeda implícita: BRL neste escopo. Na UI de gestão, esses valores são capturados e exibidos em reais e convertidos para centavos na borda HTTP.
 _Avoid_: float/double para dinheiro; Decimal como tipo de domínio neste entregável
 
 **Usage count**:

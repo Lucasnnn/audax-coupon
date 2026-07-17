@@ -204,6 +204,7 @@ export default function CouponsPage() {
 
           <label>
             Valor
+            {form.discountType === "FIXED" ? " (R$)" : " (%)"}
             <input
               value={form.discountValue}
               onChange={(e) =>
