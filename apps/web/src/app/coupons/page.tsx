@@ -6,6 +6,7 @@ import { couponsApi } from "@/lib/coupons-api";
 import { isCouponExpired } from "@/lib/coupon-expiration";
 import { canDeleteCoupon } from "@/lib/coupon-ops";
 import { toDatetimeLocalValue } from "@/lib/datetime-local";
+import { centsToReais, reaisToCents } from "@/lib/money";
 import styles from "./coupons.module.css";
 
 type FormState = {
@@ -59,23 +60,29 @@ export default function CouponsPage() {
     setError(null);
 
     try {
-      const discountValue = Number(form.discountValue);
+      const discountValue =
+        form.discountType === "FIXED"
+          ? reaisToCents(form.discountValue)
+          : Number(form.discountValue);
       const minOrderAmount =
         form.minOrderAmount.trim() === ""
           ? undefined
-          : Number(form.minOrderAmount);
+          : reaisToCents(form.minOrderAmount);
 
       if (!form.code.trim()) {
         throw new Error("Coupon code is required");
       }
-      if (!Number.isFinite(discountValue)) {
+      if (
+        form.discountType === "PERCENTAGE" &&
+        !Number.isFinite(discountValue)
+      ) {
         throw new Error("Discount value must be a number");
       }
       if (
         form.discountType === "FIXED" &&
         (minOrderAmount === undefined || !Number.isFinite(minOrderAmount))
       ) {
-        throw new Error("Fixed coupons require a min order amount in cents");
+        throw new Error("Fixed coupons require a min order amount in reais");
       }
 
       await couponsApi.create({
@@ -157,7 +164,8 @@ export default function CouponsPage() {
           <p className={styles.eyebrow}>Audax</p>
           <h1>Cupons</h1>
           <p className={styles.subtitle}>
-            Gestão de cupons de desconto. Valores monetários em centavos.
+            Gestão de cupons de desconto. Valores monetários em reais; a API
+            recebe centavos.
           </p>
         </div>
         <p className={styles.meta}>{total} cadastrados</p>
@@ -201,19 +209,23 @@ export default function CouponsPage() {
               onChange={(e) =>
                 setForm({ ...form, discountValue: e.target.value })
               }
-              placeholder={form.discountType === "PERCENTAGE" ? "10" : "1500"}
+              placeholder={
+                form.discountType === "PERCENTAGE" ? "10" : "15,00"
+              }
               required
             />
           </label>
 
           <label>
-            Min. pedido (centavos)
+            Min. pedido (R$)
             <input
               value={form.minOrderAmount}
               onChange={(e) =>
                 setForm({ ...form, minOrderAmount: e.target.value })
               }
-              placeholder={form.discountType === "FIXED" ? "obrigatório" : "opcional"}
+              placeholder={
+                form.discountType === "FIXED" ? "obrigatório, ex.: 50,00" : "opcional"
+              }
             />
           </label>
 
@@ -249,9 +261,11 @@ export default function CouponsPage() {
               <div>
                 <strong>{coupon.code}</strong>
                 <p className={styles.muted}>
-                  {coupon.discountType} · {coupon.discountValue}
+                  {coupon.discountType === "PERCENTAGE"
+                    ? `${coupon.discountValue}%`
+                    : `R$ ${centsToReais(coupon.discountValue)}`}
                   {coupon.minOrderAmount != null
-                    ? ` · min ${coupon.minOrderAmount}`
+                    ? ` · min R$ ${centsToReais(coupon.minOrderAmount)}`
                     : ""}{" "}
                   · usos {coupon.usageCount}
                   {coupon.expiresAt
