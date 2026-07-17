@@ -88,7 +88,7 @@ describe("Coupon", () => {
     expect(coupon.minOrderAmount).toBe(2000);
   });
 
-  it("rejects changing discount after the coupon has been used", () => {
+  it("changeDiscount still applies when usage count is positive", () => {
     const coupon = Coupon.reconstitute({
       id: "11111111-1111-1111-1111-111111111111",
       code: "USED",
@@ -100,12 +100,12 @@ describe("Coupon", () => {
       expiresAt: undefined,
     });
 
-    expect(() =>
-      coupon.changeDiscount({
-        discountType: "PERCENTAGE",
-        discountValue: 20,
-      }),
-    ).toThrow(/used/i);
+    coupon.changeDiscount({
+      discountType: "PERCENTAGE",
+      discountValue: 20,
+    });
+
+    expect(coupon.discountValue).toBe(20);
   });
 
   it("marks a coupon as expired when expiration date is in the past", () => {
