@@ -1,10 +1,16 @@
+import {
+  COUPON_STATUSES,
+  DISCOUNT_TYPES,
+  type CreateCouponRequest,
+  type UpdateCouponRequest,
+} from "@audax/contracts";
 import { z } from "zod";
 
-const discountTypeSchema = z.enum(["PERCENTAGE", "FIXED"], {
+const discountTypeSchema = z.enum(DISCOUNT_TYPES, {
   errorMap: () => ({ message: "Tipo de desconto inválido" }),
 });
 
-const couponStatusSchema = z.enum(["ACTIVE", "INACTIVE"], {
+const couponStatusSchema = z.enum(COUPON_STATUSES, {
   errorMap: () => ({ message: "Status inválido" }),
 });
 
@@ -32,7 +38,7 @@ export const createCouponBodySchema = z.object({
     .positive("O valor mínimo do pedido deve ser positivo")
     .optional(),
   expiresAt: isoDateTimeSchema.optional(),
-});
+}) satisfies z.ZodType<CreateCouponRequest>;
 
 export const updateCouponBodySchema = z
   .object({
@@ -58,11 +64,11 @@ export const updateCouponBodySchema = z
     (body) =>
       body.status !== undefined ||
       body.discountType !== undefined ||
-      body.discountValue !== undefined ||
       body.minOrderAmount !== undefined ||
+      body.discountValue !== undefined ||
       body.expiresAt !== undefined,
     { message: "Informe ao menos um campo para atualizar" },
-  );
+  ) satisfies z.ZodType<UpdateCouponRequest>;
 
 export const listCouponsQuerySchema = z.object({
   page: z.coerce

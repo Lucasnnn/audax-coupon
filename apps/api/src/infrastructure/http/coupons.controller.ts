@@ -12,6 +12,10 @@ import {
   Post,
   Query,
 } from "@nestjs/common";
+import type {
+  CouponDto,
+  PaginatedCoupons,
+} from "@audax/contracts";
 import { CreateCouponUseCase } from "../../application/coupon/create-coupon.js";
 import { DeleteCouponUseCase } from "../../application/coupon/delete-coupon.js";
 import { GetCouponUseCase } from "../../application/coupon/get-coupon.js";
@@ -50,7 +54,7 @@ export class CouponsController {
   async create(
     @Body(new ZodValidationPipe(createCouponBodySchema))
     body: CreateCouponBody,
-  ) {
+  ): Promise<CouponDto> {
     try {
       const coupon = await this.createCoupon.execute({
         ...body,
@@ -66,7 +70,7 @@ export class CouponsController {
   async list(
     @Query(new ZodValidationPipe(listCouponsQuerySchema))
     query: ListCouponsQuery,
-  ) {
+  ): Promise<PaginatedCoupons> {
     const result = await this.listCoupons.execute({
       page: query.page,
       pageSize: query.pageSize,
@@ -81,7 +85,7 @@ export class CouponsController {
   }
 
   @Get(":id")
-  async getById(@Param("id") id: string) {
+  async getById(@Param("id") id: string): Promise<CouponDto> {
     try {
       const coupon = await this.getCoupon.execute(id);
       return this.toResponse(coupon);
@@ -95,7 +99,7 @@ export class CouponsController {
     @Param("id") id: string,
     @Body(new ZodValidationPipe(updateCouponBodySchema))
     body: UpdateCouponBody,
-  ) {
+  ): Promise<CouponDto> {
     try {
       await this.updateCoupon.execute({
         id,
@@ -119,7 +123,7 @@ export class CouponsController {
     }
   }
 
-  private toResponse(coupon: Coupon) {
+  private toResponse(coupon: Coupon): CouponDto {
     return {
       id: coupon.id,
       code: coupon.code,

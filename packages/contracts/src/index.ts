@@ -1,5 +1,8 @@
-export type DiscountType = "PERCENTAGE" | "FIXED";
-export type CouponStatus = "ACTIVE" | "INACTIVE";
+export const DISCOUNT_TYPES = ["PERCENTAGE", "FIXED"] as const;
+export type DiscountType = (typeof DISCOUNT_TYPES)[number];
+
+export const COUPON_STATUSES = ["ACTIVE", "INACTIVE"] as const;
+export type CouponStatus = (typeof COUPON_STATUSES)[number];
 
 export type CouponDto = {
   id: string;
