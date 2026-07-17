@@ -195,35 +195,54 @@ export default function CouponsPage() {
             />
           </label>
 
-          <label>
-            Tipo
-            <select
-              value={form.discountType}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  discountType: e.target.value as DiscountType,
-                })
-              }
-            >
-              <option value="PERCENTAGE">PERCENTAGE</option>
-              <option value="FIXED">FIXED</option>
-            </select>
-          </label>
-
-          <label>
-            Valor
-            {form.discountType === "FIXED" ? " (R$)" : " (%)"}
-            <input
-              value={form.discountValue}
-              onChange={(e) =>
-                setForm({ ...form, discountValue: e.target.value })
-              }
-              placeholder={
-                form.discountType === "PERCENTAGE" ? "10" : "15,00"
-              }
-              required
-            />
+          <label className={styles.discountField}>
+            Desconto
+            <div className={styles.discountControl}>
+              <input
+                value={form.discountValue}
+                onChange={(e) =>
+                  setForm({ ...form, discountValue: e.target.value })
+                }
+                placeholder={
+                  form.discountType === "PERCENTAGE" ? "10" : "15,00"
+                }
+                inputMode="decimal"
+                required
+                aria-label="Valor do desconto"
+              />
+              <div
+                className={styles.discountUnit}
+                role="group"
+                aria-label="Tipo de desconto"
+              >
+                <button
+                  type="button"
+                  className={
+                    form.discountType === "PERCENTAGE"
+                      ? styles.discountUnitActive
+                      : undefined
+                  }
+                  aria-pressed={form.discountType === "PERCENTAGE"}
+                  onClick={() =>
+                    setForm({ ...form, discountType: "PERCENTAGE" })
+                  }
+                >
+                  %
+                </button>
+                <button
+                  type="button"
+                  className={
+                    form.discountType === "FIXED"
+                      ? styles.discountUnitActive
+                      : undefined
+                  }
+                  aria-pressed={form.discountType === "FIXED"}
+                  onClick={() => setForm({ ...form, discountType: "FIXED" })}
+                >
+                  R$
+                </button>
+              </div>
+            </div>
           </label>
 
           <label>

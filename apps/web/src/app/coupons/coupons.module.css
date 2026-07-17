@@ -80,6 +80,76 @@
   background: #fff;
 }
 
+.discountField {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.discountControl {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.discountControl:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgb(15 110 86 / 12%);
+}
+
+.discountControl input {
+  flex: 1;
+  min-width: 0;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0.65rem 0.85rem;
+  background: transparent;
+}
+
+.discountControl input:focus {
+  outline: none;
+}
+
+.discountUnit {
+  display: flex;
+  flex-shrink: 0;
+  border-left: 1px solid var(--line);
+  background: #f5f7f9;
+}
+
+.discountUnit button {
+  margin: 0;
+  min-width: 2.75rem;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0.55rem 0.7rem !important;
+  background: transparent !important;
+  color: var(--muted);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.discountUnit button + button {
+  border-left: 1px solid var(--line) !important;
+}
+
+.discountUnit button:hover {
+  color: var(--ink);
+  background: #eef2f5 !important;
+}
+
+.discountUnitActive {
+  color: var(--accent) !important;
+  background: #e5f3ee !important;
+}
+
 .form input[type="datetime-local"] {
   font-variant-numeric: tabular-nums;
   min-height: 2.65rem;
