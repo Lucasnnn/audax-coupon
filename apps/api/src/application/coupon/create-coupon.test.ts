@@ -57,4 +57,18 @@ describe("CreateCouponUseCase", () => {
     expect(found?.expiresAt).toEqual(expiresAt);
     expect(found?.isExpired(new Date("2027-01-01T00:00:00.000Z"))).toBe(true);
   });
+
+  it("rejects creating a coupon with an expiration date before today", async () => {
+    const repository = new InMemoryCouponRepository();
+    const createCoupon = new CreateCouponUseCase(repository);
+
+    await expect(
+      createCoupon.execute({
+        code: "PAST",
+        discountType: "PERCENTAGE",
+        discountValue: 10,
+        expiresAt: new Date("2020-01-01T00:00:00.000Z"),
+      }),
+    ).rejects.toThrow(/expiration date cannot be before today/i);
+  });
 });
