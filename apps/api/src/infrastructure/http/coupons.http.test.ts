@@ -172,4 +172,27 @@ describe("Coupons HTTP", () => {
     expect(response.body.status).toBe("INACTIVE");
     expect(response.body.expiresAt).toBe("2027-06-01T12:00:00.000Z");
   });
+
+  it("rejects discount change on a used coupon", async () => {
+    const { COUPON_REPOSITORY } = await import("./tokens.js");
+    const { Coupon } = await import("../../domain/coupon/coupon.js");
+    const repository = app.get(COUPON_REPOSITORY);
+
+    const used = Coupon.reconstitute({
+      id: "44444444-4444-4444-4444-444444444444",
+      code: "USEDDISC",
+      discountType: "PERCENTAGE",
+      discountValue: 10,
+      status: "ACTIVE",
+      usageCount: 1,
+      minOrderAmount: undefined,
+      expiresAt: undefined,
+    });
+    await repository.save(used);
+
+    await request(app.getHttpServer())
+      .patch(`/coupons/${used.id}`)
+      .send({ discountType: "PERCENTAGE", discountValue: 25 })
+      .expect(409);
+  });
 });
