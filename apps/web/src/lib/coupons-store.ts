@@ -116,6 +116,38 @@ export const couponsStore = {
     }
   },
 
+  async loadMore(): Promise<void> {
+    if (state.loading || !state.truncated) {
+      return;
+    }
+
+    const nextPage = Math.floor(state.items.length / CLIENT_LIST_PAGE_SIZE) + 1;
+    setState({ loading: true, error: null });
+    try {
+      const result = await couponsApi.list(nextPage, CLIENT_LIST_PAGE_SIZE);
+      const seen = new Set(state.items.map((item) => item.id));
+      const appended = result.items.filter((item) => !seen.has(item.id));
+      const items = sortCouponsByCreatedAtDesc([
+        ...state.items,
+        ...appended,
+      ]);
+      setState({
+        items,
+        total: result.total,
+        truncated: result.total > items.length,
+        loaded: true,
+        loading: false,
+        error: null,
+      });
+    } catch (err) {
+      setState({
+        loading: false,
+        error:
+          err instanceof Error ? err.message : "Falha ao carregar cupons",
+      });
+    }
+  },
+
   add(coupon: CouponDto): void {
     const items = sortCouponsByCreatedAtDesc([coupon, ...state.items]);
     setState({
