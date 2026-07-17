@@ -51,11 +51,13 @@ export default function CouponsPage() {
   const {
     items: coupons,
     total,
+    loadedCount,
+    truncated,
     loading,
     error: loadError,
   } = useCouponsPage(page, PAGE_SIZE);
 
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(loadedCount / PAGE_SIZE));
   const error = actionError ?? loadError;
 
   useEffect(() => {
@@ -63,10 +65,10 @@ export default function CouponsPage() {
   }, []);
 
   useEffect(() => {
-    if (total > 0 && page > totalPages) {
+    if (loadedCount > 0 && page > totalPages) {
       setPage(totalPages);
     }
-  }, [page, total, totalPages]);
+  }, [page, loadedCount, totalPages]);
 
   useEffect(() => {
     if (skipListScrollRef.current) {
@@ -193,6 +195,12 @@ export default function CouponsPage() {
       </header>
 
       {error ? <div className={styles.error}>{error}</div> : null}
+      {truncated ? (
+        <div className={styles.error} role="status">
+          Exibindo os primeiros {loadedCount} de {total} cupons. A listagem
+          local está limitada a 1000 itens.
+        </div>
+      ) : null}
 
       <section className={styles.panel}>
         <h2>Novo cupom</h2>
@@ -295,6 +303,7 @@ export default function CouponsPage() {
             <p className={styles.listCount}>
               Página {page} de {totalPages} · {total}{" "}
               {total === 1 ? "cupom" : "cupons"}
+              {truncated ? ` (carregados ${loadedCount})` : ""}
             </p>
           ) : null}
         </div>
@@ -424,7 +433,7 @@ export default function CouponsPage() {
             );
           })}
         </ul>
-        {!loading && total > PAGE_SIZE ? (
+        {!loading && loadedCount > PAGE_SIZE ? (
           <nav className={styles.pagination} aria-label="Paginação da lista">
             <button
               type="button"

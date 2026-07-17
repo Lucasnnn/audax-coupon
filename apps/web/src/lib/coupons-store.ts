@@ -5,6 +5,10 @@ export const CLIENT_LIST_PAGE_SIZE = 1000;
 
 export type CouponsStoreState = {
   items: CouponDto[];
+  /** Total reported by the API (may exceed items.length when truncated). */
+  total: number;
+  /** True when the API has more coupons than CLIENT_LIST_PAGE_SIZE. */
+  truncated: boolean;
   loaded: boolean;
   loading: boolean;
   error: string | null;
@@ -14,6 +18,8 @@ type Listener = () => void;
 
 let state: CouponsStoreState = {
   items: [],
+  total: 0,
+  truncated: false,
   loaded: false,
   loading: false,
   error: null,
@@ -40,8 +46,9 @@ export function paginateCoupons(
   items: CouponDto[],
   page: number,
   pageSize: number,
+  totalOverride?: number,
 ): { items: CouponDto[]; total: number; page: number; pageSize: number } {
-  const total = items.length;
+  const total = totalOverride ?? items.length;
   const safePage = Math.max(1, page);
   const start = (safePage - 1) * pageSize;
   return {
@@ -68,6 +75,8 @@ export const couponsStore = {
   _reset(): void {
     state = {
       items: [],
+      total: 0,
+      truncated: false,
       loaded: false,
       loading: false,
       error: null,
@@ -86,8 +95,11 @@ export const couponsStore = {
     setState({ loading: true, error: null });
     try {
       const result = await couponsApi.list(1, CLIENT_LIST_PAGE_SIZE);
+      const items = sortCouponsByCode(result.items);
       setState({
-        items: sortCouponsByCode(result.items),
+        items,
+        total: result.total,
+        truncated: result.total > items.length,
         loaded: true,
         loading: false,
         error: null,
@@ -102,8 +114,10 @@ export const couponsStore = {
   },
 
   add(coupon: CouponDto): void {
+    const items = sortCouponsByCode([...state.items, coupon]);
     setState({
-      items: sortCouponsByCode([...state.items, coupon]),
+      items,
+      total: state.total + 1,
       error: null,
       loaded: true,
     });
@@ -119,8 +133,11 @@ export const couponsStore = {
   },
 
   remove(id: string): void {
+    const items = state.items.filter((item) => item.id !== id);
+    const removed = items.length < state.items.length;
     setState({
-      items: state.items.filter((item) => item.id !== id),
+      items,
+      total: removed ? Math.max(0, state.total - 1) : state.total,
       error: null,
     });
   },

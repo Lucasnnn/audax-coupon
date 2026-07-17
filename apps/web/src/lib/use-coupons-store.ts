@@ -16,10 +16,16 @@ export function useCouponsStore(): CouponsStoreState {
 }
 
 export function useCouponsPage(page: number, pageSize: number) {
-  const { items, loaded, loading, error } = useCouponsStore();
+  const { items, total, truncated, loaded, loading, error } = useCouponsStore();
+  // Pagination is client-side over the loaded window only.
   const pageData = paginateCoupons(items, page, pageSize);
   return {
-    ...pageData,
+    items: pageData.items,
+    page: pageData.page,
+    pageSize: pageData.pageSize,
+    loadedCount: items.length,
+    total,
+    truncated,
     loaded,
     loading,
     error,
