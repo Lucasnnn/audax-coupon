@@ -140,7 +140,8 @@ Na UI de gestão:
 - **Listar** com paginação no cliente (store carrega até 1000 itens).
 - **Atualizar** status e Expiration date na listagem (campos operacionais do dia a dia).
 - **Remover** com confirmação (bloqueado se `usageCount > 0`).
-- Tipo/valor de desconto e mínimo de pedido são definidos na **criação**; a API já aceita alteração desses campos no `PATCH` enquanto `usageCount === 0` (política na application). Detalhe por id existe na API (`GET /coupons/:id`) e no client (`couponsApi.get`).
+- Tipo/valor de desconto e mínimo de pedido são definidos na **criação** na UI. A API ainda permite alterá-los no `PATCH` enquanto `usageCount === 0` (política na application / outros clientes); a tela de gestão não expõe essa edição.
+- Detalhe por id (`GET /coupons/:id`) existe na API; o client HTTP espelha o endpoint (`couponsApi.get`), mas a UI de gestão trabalha só com a listagem.
 
 ## Decisões de arquitetura e trade-offs
 
