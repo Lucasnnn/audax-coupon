@@ -104,4 +104,23 @@ describe("UpdateCouponUseCase", () => {
       }),
     ).rejects.toThrow(/discount/i);
   });
+
+  it("rejects updating expiration to a date before today", async () => {
+    const repository = new InMemoryCouponRepository();
+    const createCoupon = new CreateCouponUseCase(repository);
+    const updateCoupon = new UpdateCouponUseCase(repository);
+
+    const created = await createCoupon.execute({
+      code: "PASTUPD",
+      discountType: "PERCENTAGE",
+      discountValue: 10,
+    });
+
+    await expect(
+      updateCoupon.execute({
+        id: created.id,
+        expiresAt: new Date("2020-06-01T00:00:00.000Z"),
+      }),
+    ).rejects.toThrow(/expiration date cannot be before today/i);
+  });
 });
