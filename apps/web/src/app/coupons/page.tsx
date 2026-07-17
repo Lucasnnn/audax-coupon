@@ -258,99 +258,125 @@ export default function CouponsPage() {
       </section>
 
       <section className={styles.panel}>
-        <h2>Lista</h2>
+        <div className={styles.listHeader}>
+          <h2>Lista</h2>
+          {!loading && total > 0 ? (
+            <p className={styles.listCount}>{total} cupom{total === 1 ? "" : "ns"}</p>
+          ) : null}
+        </div>
         {loading ? <p className={styles.muted}>Carregando...</p> : null}
         {!loading && coupons.length === 0 ? (
-          <p className={styles.muted}>Nenhum cupom ainda.</p>
+          <p className={styles.empty}>Nenhum cupom ainda. Crie o primeiro acima.</p>
         ) : null}
         <ul className={styles.list}>
           {coupons.map((coupon) => {
             const expired = isCouponExpired(coupon.expiresAt);
+            const inactive = coupon.status === "INACTIVE";
 
             return (
-            <li key={coupon.id} className={styles.item}>
-              <div>
-                <strong>{coupon.code}</strong>
-                <p className={styles.muted}>
-                  {coupon.discountType === "PERCENTAGE"
-                    ? `${coupon.discountValue}%`
-                    : `R$ ${centsToReais(coupon.discountValue)}`}
-                  {coupon.minOrderAmount != null
-                    ? ` · min R$ ${centsToReais(coupon.minOrderAmount)}`
-                    : ""}{" "}
-                  · usos {coupon.usageCount}
-                  {coupon.expiresAt
-                    ? ` · expira ${new Date(coupon.expiresAt).toLocaleString("pt-BR")}`
-                    : " · sem expiração"}
-                </p>
-              </div>
-              <div className={styles.actions}>
-                {expired ? (
-                  <span className={styles.badgeOff}>EXPIRADO</span>
-                ) : null}
-                <label className={styles.inlineField}>
-                  Expira em
-                  <input
-                    type="datetime-local"
-                    min={minDatetimeLocalToday()}
-                    value={expirationDraft(coupon)}
-                    onChange={(e) =>
-                      setExpirationDrafts((current) => ({
-                        ...current,
-                        [coupon.id]: e.target.value,
-                      }))
-                    }
-                  />
-                </label>
-                <button type="button" onClick={() => void saveExpiration(coupon)}>
-                  Salvar expiração
-                </button>
-                <label className={styles.toggle}>
-                  <span className={styles.toggleLabel}>
-                    {coupon.status === "ACTIVE" ? "Ativo" : "Inativo"}
-                  </span>
-                  <input
-                    type="checkbox"
-                    role="switch"
-                    checked={coupon.status === "ACTIVE"}
-                    aria-label={
-                      coupon.status === "ACTIVE"
-                        ? "Desativar cupom"
-                        : "Ativar cupom"
-                    }
-                    onChange={() => void toggleStatus(coupon)}
-                  />
-                  <span className={styles.toggleTrack} aria-hidden="true" />
-                </label>
-                {canDeleteCoupon(coupon.usageCount) ? (
-                  <button
-                    type="button"
-                    className={styles.iconDanger}
-                    aria-label="Remover cupom"
-                    title="Remover"
-                    onClick={() => void removeCoupon(coupon)}
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      width="18"
-                      height="18"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M3 6h18" />
-                      <path d="M8 6V4h8v2" />
-                      <path d="M19 6l-1 14H6L5 6" />
-                      <path d="M10 11v6" />
-                      <path d="M14 11v6" />
-                    </svg>
-                  </button>
-                ) : null}
-              </div>
-            </li>
+              <li
+                key={coupon.id}
+                className={`${styles.item}${inactive ? ` ${styles.itemInactive}` : ""}`}
+              >
+                <div className={styles.itemTop}>
+                  <div className={styles.itemIdentity}>
+                    <div className={styles.itemTitleRow}>
+                      <strong className={styles.itemCode}>{coupon.code}</strong>
+                      {expired ? (
+                        <span className={styles.badgeExpired}>Expirado</span>
+                      ) : null}
+                    </div>
+                    <ul className={styles.itemMeta}>
+                      <li>
+                        {coupon.discountType === "PERCENTAGE"
+                          ? `${coupon.discountValue}%`
+                          : `R$ ${centsToReais(coupon.discountValue)}`}
+                      </li>
+                      {coupon.minOrderAmount != null ? (
+                        <li>mín. R$ {centsToReais(coupon.minOrderAmount)}</li>
+                      ) : null}
+                      <li>
+                        {coupon.usageCount === 0
+                          ? "sem usos"
+                          : `${coupon.usageCount} uso${coupon.usageCount === 1 ? "" : "s"}`}
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className={styles.itemTools}>
+                    <label className={styles.toggle}>
+                      <span className={styles.toggleLabel}>
+                        {coupon.status === "ACTIVE" ? "Ativo" : "Inativo"}
+                      </span>
+                      <input
+                        type="checkbox"
+                        role="switch"
+                        checked={coupon.status === "ACTIVE"}
+                        aria-label={
+                          coupon.status === "ACTIVE"
+                            ? "Desativar cupom"
+                            : "Ativar cupom"
+                        }
+                        onChange={() => void toggleStatus(coupon)}
+                      />
+                      <span className={styles.toggleTrack} aria-hidden="true" />
+                    </label>
+                    {canDeleteCoupon(coupon.usageCount) ? (
+                      <button
+                        type="button"
+                        className={styles.iconDanger}
+                        aria-label="Remover cupom"
+                        title="Remover"
+                        onClick={() => void removeCoupon(coupon)}
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          width="18"
+                          height="18"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="M3 6h18" />
+                          <path d="M8 6V4h8v2" />
+                          <path d="M19 6l-1 14H6L5 6" />
+                          <path d="M10 11v6" />
+                          <path d="M14 11v6" />
+                        </svg>
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className={styles.itemExpiration}>
+                  <label className={styles.expirationField}>
+                    <span>Expiração</span>
+                    <div className={styles.expirationControls}>
+                      <input
+                        type="datetime-local"
+                        min={minDatetimeLocalToday()}
+                        value={expirationDraft(coupon)}
+                        onChange={(e) =>
+                          setExpirationDrafts((current) => ({
+                            ...current,
+                            [coupon.id]: e.target.value,
+                          }))
+                        }
+                      />
+                      <button
+                        type="button"
+                        className={styles.saveExpiration}
+                        onClick={() => void saveExpiration(coupon)}
+                      >
+                        Salvar
+                      </button>
+                    </div>
+                  </label>
+                </div>
+              </li>
             );
           })}
         </ul>
