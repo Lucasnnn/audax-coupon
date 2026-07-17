@@ -26,6 +26,18 @@ describe("validateCreateCouponForm", () => {
     ).toThrow(/maior ou igual ao valor do desconto/i);
   });
 
+  it("rejects min order amount above the maximum money amount", () => {
+    expect(() =>
+      validateCreateCouponForm({
+        code: "HUGE",
+        discountType: "PERCENTAGE",
+        discountValue: "12",
+        minOrderAmount: "1000000000",
+        expiresAt: "",
+      }),
+    ).toThrow(/limite máximo/i);
+  });
+
   it("accepts percentage 1..100 and fixed with min >= discount", () => {
     expect(
       validateCreateCouponForm({
