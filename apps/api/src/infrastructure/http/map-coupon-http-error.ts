@@ -17,7 +17,8 @@ export function mapCouponHttpError(error: unknown): never {
   if (
     error.message === CouponErrors.codeUnique ||
     error.message === CouponErrors.usedCannotDelete ||
-    error.message === CouponErrors.usedCannotChangeDiscount
+    error.message === CouponErrors.usedCannotChangeDiscount ||
+    error.message === CouponErrors.expiredCannotChangeExpiration
   ) {
     throw new ConflictException(error.message);
   }

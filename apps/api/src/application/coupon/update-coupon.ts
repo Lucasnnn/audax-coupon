@@ -40,6 +40,9 @@ export class UpdateCouponUseCase {
     }
 
     if (input.expiresAt !== undefined) {
+      if (coupon.expiresAt && coupon.expiresAt.getTime() <= Date.now()) {
+        throw new Error(CouponErrors.expiredCannotChangeExpiration);
+      }
       if (input.expiresAt !== null) {
         assertExpirationNotBeforeToday(input.expiresAt);
       }

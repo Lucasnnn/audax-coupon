@@ -238,4 +238,27 @@ describe("Coupons HTTP", () => {
       .send({ discountType: "PERCENTAGE", discountValue: 25 })
       .expect(409);
   });
+
+  it("rejects changing expiration on an already expired coupon", async () => {
+    const { COUPON_REPOSITORY } = await import("./tokens.js");
+    const { Coupon } = await import("../../domain/coupon/coupon.js");
+    const repository = app.get(COUPON_REPOSITORY);
+
+    const expired = Coupon.reconstitute({
+      id: "55555555-5555-5555-5555-555555555555",
+      code: "EXPIREDHTTP",
+      discountType: "PERCENTAGE",
+      discountValue: 10,
+      status: "ACTIVE",
+      usageCount: 0,
+      minOrderAmount: undefined,
+      expiresAt: new Date("2020-01-01T00:00:00.000Z"),
+    });
+    await repository.save(expired);
+
+    await request(app.getHttpServer())
+      .patch(`/coupons/${expired.id}`)
+      .send({ expiresAt: "2027-06-01T12:00:00.000Z" })
+      .expect(409);
+  });
 });

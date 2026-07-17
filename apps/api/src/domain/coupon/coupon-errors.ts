@@ -10,4 +10,6 @@ export const CouponErrors = {
   usedCannotDelete: "Cupons já utilizados não podem ser excluídos",
   usedCannotChangeDiscount:
     "Tipo e valor do desconto não podem ser alterados após o uso do cupom",
+  expiredCannotChangeExpiration:
+    "A data de expiração de um cupom já expirado não pode ser alterada",
 } as const;

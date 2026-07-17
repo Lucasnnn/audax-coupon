@@ -4,12 +4,13 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import type { CouponDto, DiscountType } from "@audax/contracts";
 import { couponsApi } from "@/lib/coupons-api";
 import { isCouponExpired } from "@/lib/coupon-expiration";
-import { canDeleteCoupon } from "@/lib/coupon-ops";
+import { canChangeExpiration, canDeleteCoupon } from "@/lib/coupon-ops";
 import { minDatetimeLocalToday, toDatetimeLocalValue } from "@/lib/datetime-local";
 import { isExpirationNotBeforeToday } from "@/lib/expiration-guard";
 import { centsToReais, reaisToCents } from "@/lib/money";
 import styles from "./coupons.module.css";
 
+const PAGE_SIZE = 10;
 type FormState = {
   code: string;
   discountType: DiscountType;
@@ -29,6 +30,7 @@ const emptyForm: FormState = {
 export default function CouponsPage() {
   const [coupons, setCoupons] = useState<CouponDto[]>([]);
   const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,24 +42,36 @@ export default function CouponsPage() {
     useState<CouponDto | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const page = await couponsApi.list(1, 50);
-      setCoupons(page.items);
-      setTotal(page.total);
+      const result = await couponsApi.list(page, PAGE_SIZE);
+      setCoupons(result.items);
+      setTotal(result.total);
+      if (result.total > 0 && result.items.length === 0 && page > 1) {
+        setPage(page - 1);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Falha ao carregar cupons");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
+  async function refreshAfterMutation() {
+    if (page !== 1) {
+      setPage(1);
+      return;
+    }
+    await load();
+  }
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitting(true);
@@ -107,7 +121,7 @@ export default function CouponsPage() {
       });
 
       setForm(emptyForm);
-      await load();
+      await refreshAfterMutation();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Falha ao criar cupom");
     } finally {
@@ -138,7 +152,11 @@ export default function CouponsPage() {
     try {
       await couponsApi.remove(coupon.id);
       setCouponPendingDelete(null);
-      await load();
+      if (coupons.length === 1 && page > 1) {
+        setPage(page - 1);
+      } else {
+        await load();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Falha ao excluir cupom");
     } finally {
@@ -155,6 +173,11 @@ export default function CouponsPage() {
   async function saveExpiration(coupon: CouponDto) {
     setError(null);
     try {
+      if (!canChangeExpiration(coupon.expiresAt)) {
+        throw new Error(
+          "A data de expiração de um cupom já expirado não pode ser alterada",
+        );
+      }
       const draft = expirationDraft(coupon).trim();
       if (draft !== "" && !isExpirationNotBeforeToday(draft)) {
         throw new Error("A data de expiração não pode ser anterior a hoje");
@@ -289,7 +312,8 @@ export default function CouponsPage() {
           <h2>Lista</h2>
           {!loading && total > 0 ? (
             <p className={styles.listCount}>
-              {total} {total === 1 ? "cupom" : "cupons"}
+              Página {page} de {totalPages} · {total}{" "}
+              {total === 1 ? "cupom" : "cupons"}
             </p>
           ) : null}
         </div>
@@ -301,6 +325,7 @@ export default function CouponsPage() {
           {coupons.map((coupon) => {
             const expired = isCouponExpired(coupon.expiresAt);
             const inactive = coupon.status === "INACTIVE";
+            const expirationEditable = canChangeExpiration(coupon.expiresAt);
 
             return (
               <li
@@ -383,38 +408,69 @@ export default function CouponsPage() {
                 <div className={styles.itemExpiration}>
                   <label className={styles.expirationField}>
                     <span>Expiração</span>
-                    <div className={styles.expirationControls}>
-                      <input
-                        type="datetime-local"
-                        min={minDatetimeLocalToday()}
-                        value={expirationDraft(coupon)}
-                        onChange={(e) =>
-                          setExpirationDrafts((current) => ({
-                            ...current,
-                            [coupon.id]: e.target.value,
-                          }))
-                        }
-                      />
-                      <button
-                        type="button"
-                        className={styles.saveExpiration}
-                        disabled={
-                          expirationDraft(coupon) ===
-                          toDatetimeLocalValue(coupon.expiresAt)
-                        }
-                        onClick={() => void saveExpiration(coupon)}
-                      >
-                        Salvar
-                      </button>
-                    </div>
+                    {expirationEditable ? (
+                      <div className={styles.expirationControls}>
+                        <input
+                          type="datetime-local"
+                          min={minDatetimeLocalToday()}
+                          value={expirationDraft(coupon)}
+                          onChange={(e) =>
+                            setExpirationDrafts((current) => ({
+                              ...current,
+                              [coupon.id]: e.target.value,
+                            }))
+                          }
+                        />
+                        <button
+                          type="button"
+                          className={styles.saveExpiration}
+                          disabled={
+                            expirationDraft(coupon) ===
+                            toDatetimeLocalValue(coupon.expiresAt)
+                          }
+                          onClick={() => void saveExpiration(coupon)}
+                        >
+                          Salvar
+                        </button>
+                      </div>
+                    ) : (
+                      <p className={styles.expirationLocked}>
+                        {toDatetimeLocalValue(coupon.expiresAt) || "—"}
+                        <span>Expirado — data bloqueada</span>
+                      </p>
+                    )}
                   </label>
                 </div>
               </li>
             );
           })}
         </ul>
+        {!loading && total > PAGE_SIZE ? (
+          <nav className={styles.pagination} aria-label="Paginação da lista">
+            <button
+              type="button"
+              className={styles.pageButton}
+              disabled={page <= 1}
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+            >
+              Anterior
+            </button>
+            <p className={styles.pageStatus}>
+              {page} / {totalPages}
+            </p>
+            <button
+              type="button"
+              className={styles.pageButton}
+              disabled={page >= totalPages}
+              onClick={() =>
+                setPage((current) => Math.min(totalPages, current + 1))
+              }
+            >
+              Próxima
+            </button>
+          </nav>
+        ) : null}
       </section>
-
       {couponPendingDelete ? (
         <div
           className={styles.dialogBackdrop}

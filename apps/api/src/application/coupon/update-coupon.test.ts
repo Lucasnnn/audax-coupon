@@ -123,4 +123,28 @@ describe("UpdateCouponUseCase", () => {
       }),
     ).rejects.toThrow(/data de expiração não pode ser anterior a hoje/i);
   });
+
+  it("rejects changing expiration when the coupon is already expired", async () => {
+    const repository = new InMemoryCouponRepository();
+    const updateCoupon = new UpdateCouponUseCase(repository);
+
+    const expired = Coupon.reconstitute({
+      id: "55555555-5555-5555-5555-555555555555",
+      code: "EXPIRED",
+      discountType: "PERCENTAGE",
+      discountValue: 10,
+      status: "ACTIVE",
+      usageCount: 0,
+      minOrderAmount: undefined,
+      expiresAt: new Date("2020-01-01T00:00:00.000Z"),
+    });
+    await repository.save(expired);
+
+    await expect(
+      updateCoupon.execute({
+        id: expired.id,
+        expiresAt: new Date("2027-06-01T00:00:00.000Z"),
+      }),
+    ).rejects.toThrow(/já expirado não pode ser alterada/i);
+  });
 });
