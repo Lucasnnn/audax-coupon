@@ -7,7 +7,9 @@
     "test:api": "pnpm --filter @audax/api test",
     "dev": "turbo run dev --parallel",
     "dev:api": "pnpm --filter @audax/api dev",
-    "dev:web": "pnpm --filter @audax/web dev"
+    "dev:web": "pnpm --filter @audax/web dev",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down"
   },
   "devDependencies": {
     "turbo": "^2.5.4",
