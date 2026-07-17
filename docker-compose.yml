@@ -17,59 +17,5 @@ services:
       timeout: 5s
       retries: 10
 
-  seed:
-    image: postgres:16-alpine
-    environment:
-      PGPASSWORD: audax
-    volumes:
-      - ./apps/api/drizzle/0001_seed_mock_coupons.sql:/seed.sql:ro
-    entrypoint:
-      [
-        "psql",
-        "-h",
-        "postgres",
-        "-U",
-        "audax",
-        "-d",
-        "audax",
-        "-v",
-        "ON_ERROR_STOP=1",
-        "-f",
-        "/seed.sql",
-      ]
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: "no"
-
-  api:
-    build:
-      context: .
-      dockerfile: apps/api/Dockerfile
-    environment:
-      DATABASE_URL: postgresql://audax:audax@postgres:5432/audax
-      PORT: "3001"
-    ports:
-      - "3001:3001"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      seed:
-        condition: service_completed_successfully
-
-  web:
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: http://localhost:3001
-    environment:
-      PORT: "3000"
-      HOSTNAME: 0.0.0.0
-    ports:
-      - "3000:3000"
-    depends_on:
-      - api
-
 volumes:
   postgres_data:

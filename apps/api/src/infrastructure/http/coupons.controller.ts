@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Inject,
   NotFoundException,
   Param,
   Patch,
@@ -32,10 +33,15 @@ import { ZodValidationPipe } from "./zod-validation.pipe.js";
 @Controller("coupons")
 export class CouponsController {
   constructor(
+    @Inject(CreateCouponUseCase)
     private readonly createCoupon: CreateCouponUseCase,
+    @Inject(GetCouponUseCase)
     private readonly getCoupon: GetCouponUseCase,
+    @Inject(ListCouponsUseCase)
     private readonly listCoupons: ListCouponsUseCase,
+    @Inject(UpdateCouponUseCase)
     private readonly updateCoupon: UpdateCouponUseCase,
+    @Inject(DeleteCouponUseCase)
     private readonly deleteCoupon: DeleteCouponUseCase,
   ) {}
 

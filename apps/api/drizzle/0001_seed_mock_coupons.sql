@@ -1,5 +1,5 @@
--- Mock dump: 30 coupons for a freshly provisioned Postgres (Docker Compose).
--- Idempotent: safe on every `docker compose up` / `pnpm db:seed`.
+-- Mock dump: 30 coupons for a freshly provisioned Postgres.
+-- Idempotent: safe on volume init (`docker:db`) and on `pnpm db:seed`.
 CREATE TABLE IF NOT EXISTS coupons (
   id UUID PRIMARY KEY,
   code TEXT NOT NULL UNIQUE,

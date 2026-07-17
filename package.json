@@ -6,15 +6,17 @@
     "test": "turbo run test",
     "test:api": "pnpm --filter @audax/api test",
     "dev": "turbo run dev --parallel",
-    "dev:memory": "PERSISTENCE=memory DATABASE_URL= turbo run dev --parallel",
+    "dev:memory": "cross-env PERSISTENCE=memory DATABASE_URL= turbo run dev --parallel",
+    "dev:postgres": "pnpm docker:db && pnpm dev",
     "dev:api": "pnpm --filter @audax/api dev",
     "dev:api:memory": "pnpm --filter @audax/api dev:memory",
     "dev:web": "pnpm --filter @audax/web dev",
-    "docker:up": "docker compose up --build",
+    "docker:db": "docker compose up postgres -d --wait",
     "docker:down": "docker compose down",
     "db:seed": "pnpm --filter @audax/api db:seed"
   },
   "devDependencies": {
+    "cross-env": "^10.1.0",
     "turbo": "^2.5.4",
     "typescript": "^5.8.3"
   }

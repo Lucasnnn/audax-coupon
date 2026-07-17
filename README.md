@@ -8,38 +8,33 @@ Este contexto cobre **cadastro e ciclo de vida operacional** do cupom. Elegibili
 
 - Node.js 22+
 - pnpm 9 (`corepack enable && corepack prepare pnpm@9.15.0 --activate`)
-- Docker + Docker Compose — só se for usar Postgres / stack Docker
+- Docker + Docker Compose — só se for usar Postgres
 
 ## Setup
 
 ```bash
 pnpm install
-```
-
-Para Postgres (local com banco ou Docker), também:
-
-```bash
 cp .env.example .env
 ```
 
-Variáveis principais:
+O `.env` na raiz é lido pela API automaticamente. No Windows não é necessário `source` / export manual.
 
 | Variável | Uso |
 |----------|-----|
-| `PERSISTENCE` | `memory` força repositório in-memory (mesmo com `DATABASE_URL` no ambiente). |
+| `PERSISTENCE` | `memory` força repositório in-memory (mesmo com `DATABASE_URL` no `.env`). |
 | `DATABASE_URL` | Postgres da API. Ausente + sem `PERSISTENCE=memory` → in-memory. |
 | `PORT` | Porta da API (padrão `3001`). |
 | `NEXT_PUBLIC_API_URL` | URL da API no browser (padrão `http://localhost:3001`). |
 
-Credenciais locais do Postgres (Compose): usuário/senha/db `audax`, porta `5432`.
+Credenciais do Postgres (Compose): usuário/senha/db `audax`, porta `5432`.
 
 ## Execução
 
-Há três caminhos: **local sem banco**, **local com Postgres** e **Docker completo**.
+Dois caminhos: **in-memory** ou **Postgres no Docker** (API e web sempre no host).
 
-### Desenvolvimento local — sem banco (in-memory)
+### 1) Local — in-memory (sem banco)
 
-Não precisa de Docker, `.env` nem Postgres. Dados ficam só na memória do processo (somem ao reiniciar).
+Não precisa de Docker nem Postgres. Dados somem ao reiniciar a API.
 
 ```bash
 pnpm install
@@ -51,33 +46,23 @@ pnpm dev:memory
 | Web     | http://localhost:3000 |
 | API     | http://localhost:3001 (`persistence: memory` no log) |
 
-Só a API:
+Só a API: `pnpm dev:api:memory`
+
+### 2) Local — Postgres no Docker
+
+Sobe só o banco no Docker; API e web rodam no host (hot reload).
 
 ```bash
-pnpm dev:api:memory
+pnpm install
+cp .env.example .env   # se ainda não tiver
+pnpm dev:postgres      # sobe Postgres (healthy) + API + web
 ```
 
-Equivalente manual (bash):
+Equivalente passo a passo:
 
 ```bash
-PERSISTENCE=memory DATABASE_URL= pnpm dev
-```
-
-### Desenvolvimento local — com Postgres
-
-1. Suba só o banco:
-
-```bash
-docker compose up postgres -d
-```
-
-2. Configure e inicie:
-
-```bash
-cp .env.example .env
-# bash / Git Bash
-set -a && source .env && set +a
-pnpm dev
+pnpm docker:db   # docker compose up postgres -d --wait
+pnpm dev         # API lê DATABASE_URL do .env → persistence: postgres
 ```
 
 | Serviço  | URL / porta |
@@ -86,29 +71,18 @@ pnpm dev
 | API      | http://localhost:3001 (`persistence: postgres` no log) |
 | Postgres | `localhost:5432` |
 
-Com `DATABASE_URL` definido, a API aplica o schema na subida. Opcionalmente:
+Com `DATABASE_URL`, a API aplica o schema na subida.
+
+**Seed** (30 cupons mock, incl. `USEDDEMO12` com `usage_count = 12`):
+
+- Em **volume novo**, o Compose aplica `0001_seed_mock_coupons.sql` via `docker-entrypoint-initdb.d`.
+- Em volume já existente (ou para reaplicar o dump idempotente):
 
 ```bash
-pnpm --filter @audax/api db:migrate
-pnpm db:seed   # dump com 30 cupons mock (incl. USEDDEMO12 usage_count=12)
+pnpm db:seed
 ```
 
-### Stack completa com Docker
-
-```bash
-pnpm docker:up
-# ou: docker compose up --build
-```
-
-O serviço `seed` roda após o Postgres ficar healthy e aplica o dump idempotente `apps/api/drizzle/0001_seed_mock_coupons.sql` (**30 cupons** mockados, incluindo **`USEDDEMO12`** com **`usage_count = 12`** para demo pós-uso). Em volume novo, o mesmo SQL também entra via `docker-entrypoint-initdb.d`.
-
-| Serviço  | URL / porta |
-|----------|-------------|
-| Web      | http://localhost:3000 |
-| API      | http://localhost:3001 |
-| Postgres | `localhost:5432` |
-
-Parar:
+Parar o Postgres:
 
 ```bash
 pnpm docker:down
@@ -118,14 +92,13 @@ pnpm docker:down
 
 | Comando | Efeito |
 |---------|--------|
-| `pnpm dev:memory` | Local: API + web **in-memory** (sem banco) |
-| `pnpm dev:api:memory` | Local: só API in-memory |
-| `pnpm dev` | Local: API + web (Postgres se `DATABASE_URL` estiver no ambiente) |
-| `pnpm dev:api` | Local: só API |
-| `pnpm dev:web` | Local: só web |
-| `pnpm docker:up` | Stack completa (Postgres + seed + API + web) |
-| `pnpm docker:down` | Para a stack Docker |
-| `pnpm db:seed` | Aplica dump de 30 cupons mock no Postgres local |
+| `pnpm dev:memory` | API + web **in-memory** (sem banco) |
+| `pnpm dev:postgres` | Sobe Postgres no Docker e API + web no host |
+| `pnpm docker:db` | Só Postgres no Docker (aguarda healthcheck) |
+| `pnpm docker:down` | Para o Postgres do Compose |
+| `pnpm dev` | API + web (Postgres se `DATABASE_URL` estiver no `.env`) |
+| `pnpm dev:api` / `dev:api:memory` / `dev:web` | Só um serviço |
+| `pnpm db:seed` | Insere/reaplica dump de 30 cupons mock no Postgres |
 
 ## Testes
 
@@ -138,7 +111,7 @@ CI (GitHub Actions): em todo `push`/`pull_request`, roda `pnpm test` (Node 22 + 
 
 - Runner: **Vitest** em todo o monorepo.
 - Domínio, casos de uso e HTTP usam **`InMemoryCouponRepository`** — sem Postgres e sem Docker nos testes.
-- O mapper Drizzle tem teste de round-trip isolado; a integração real com Postgres fica no caminho de execução (Docker / local com `DATABASE_URL`).
+- O mapper Drizzle tem teste de round-trip isolado; a integração real com Postgres fica no caminho local com `DATABASE_URL` (`pnpm docker:db` / `pnpm dev:postgres`).
 - Na borda HTTP, **Zod** (`ZodValidationPipe`) valida o contrato do request antes do caso de uso; invariantes de domínio continuam no `domain`/`application`.
 
 ## Estrutura
@@ -154,7 +127,7 @@ CONTEXT.md         linguagem ubíqua do domínio
 ## Fases do histórico (como ler os commits)
 
 1. **Domínio + TDD** — entidade, casos de uso e HTTP com in-memory (`test:` → `feat:` em fatias).
-2. **Persistência** — porta `CouponRepository`, Drizzle/Postgres, Docker Compose e seed.
+2. **Persistência** — porta `CouponRepository`, Drizzle/Postgres, Compose só do banco e seed.
 3. **Produto / UX** — formulário, paginação, políticas na UI, store local e polish visual.
 
 ## Decisões de arquitetura e trade-offs
@@ -187,7 +160,7 @@ Casos de uso são registrados como **providers Nest** via `useFactory` + `inject
 
 ### Persistência: porta + Drizzle/Postgres + in-memory nos testes
 
-**Decisão:** porta `CouponRepository` no domínio; produção/Docker com `DrizzleCouponRepository` + Postgres; testes e CLI (`pnpm dev:memory` / `PERSISTENCE=memory`) com `InMemoryCouponRepository`.
+**Decisão:** porta `CouponRepository` no domínio; com `DATABASE_URL` usa `DrizzleCouponRepository` + Postgres; testes e CLI (`pnpm dev:memory` / `PERSISTENCE=memory`) usam `InMemoryCouponRepository`.
 
 **Trade-off:** Drizzle favorece SQL revisável (schema/migrations próximos do DBA). Prisma teria DX mais “mágica”; TypeORM foi evitado pelo risco de entidades decoradas misturadas ao domínio. Custo: cuidar de versões do Drizzle e manter SQL sob controle. In-memory facilita o primeiro run sem Docker; dados não sobrevivem ao restart.
 
