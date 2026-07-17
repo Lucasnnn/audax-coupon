@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   ConflictException,
   Controller,
@@ -48,11 +49,18 @@ export class CouponsController {
     @Body()
     body: Omit<CreateCouponProps, "expiresAt"> & { expiresAt?: string },
   ) {
-    const coupon = await this.createCoupon.execute({
-      ...body,
-      expiresAt: parseExpiresAt(body.expiresAt),
-    });
-    return this.toResponse(coupon);
+    try {
+      const coupon = await this.createCoupon.execute({
+        ...body,
+        expiresAt: parseExpiresAt(body.expiresAt),
+      });
+      return this.toResponse(coupon);
+    } catch (error) {
+      if (error instanceof Error && /expiration date cannot be before today/i.test(error.message)) {
+        throw new BadRequestException(error.message);
+      }
+      throw error;
+    }
   }
 
   @Get()
@@ -105,6 +113,12 @@ export class CouponsController {
       }
       if (error instanceof Error && /discount/i.test(error.message)) {
         throw new ConflictException(error.message);
+      }
+      if (
+        error instanceof Error &&
+        /expiration date cannot be before today/i.test(error.message)
+      ) {
+        throw new BadRequestException(error.message);
       }
       throw error;
     }
