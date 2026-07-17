@@ -1,7 +1,5 @@
 import {
-  BadRequestException,
   Body,
-  ConflictException,
   Controller,
   Delete,
   Get,
@@ -25,6 +23,7 @@ import {
 import type { Coupon } from "../../domain/coupon/coupon.js";
 import type { CreateCouponProps } from "../../domain/coupon/coupon.js";
 import type { CouponRepository } from "../../domain/coupon/coupon-repository.js";
+import { mapCouponHttpError } from "./map-coupon-http-error.js";
 import { COUPON_REPOSITORY } from "./tokens.js";
 
 @Controller("coupons")
@@ -56,10 +55,7 @@ export class CouponsController {
       });
       return this.toResponse(coupon);
     } catch (error) {
-      if (error instanceof Error && /expiration date cannot be before today/i.test(error.message)) {
-        throw new BadRequestException(error.message);
-      }
-      throw error;
+      mapCouponHttpError(error);
     }
   }
 
@@ -108,19 +104,7 @@ export class CouponsController {
       const coupon = await this.getCoupon.execute(id);
       return this.toResponse(coupon);
     } catch (error) {
-      if (error instanceof Error && /not found/i.test(error.message)) {
-        throw new NotFoundException("Coupon not found");
-      }
-      if (error instanceof Error && /discount/i.test(error.message)) {
-        throw new ConflictException(error.message);
-      }
-      if (
-        error instanceof Error &&
-        /expiration date cannot be before today/i.test(error.message)
-      ) {
-        throw new BadRequestException(error.message);
-      }
-      throw error;
+      mapCouponHttpError(error);
     }
   }
 
@@ -130,13 +114,7 @@ export class CouponsController {
     try {
       await this.deleteCoupon.execute(id);
     } catch (error) {
-      if (error instanceof Error && /not found/i.test(error.message)) {
-        throw new NotFoundException("Coupon not found");
-      }
-      if (error instanceof Error && /cannot be deleted/i.test(error.message)) {
-        throw new ConflictException(error.message);
-      }
-      throw error;
+      mapCouponHttpError(error);
     }
   }
 
