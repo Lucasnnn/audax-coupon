@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { centsToReais, reaisToCents } from "./money";
+import { centsToReais, formatReaisInput, reaisToCents } from "./money";
 
 describe("money", () => {
   it("converts reais to cents for the API", () => {
@@ -18,5 +18,14 @@ describe("money", () => {
   it("rejects empty or invalid monetary input", () => {
     expect(() => reaisToCents("")).toThrow(/número/i);
     expect(() => reaisToCents("abc")).toThrow(/número/i);
+  });
+
+  it("masks digits as Brazilian reais while typing", () => {
+    expect(formatReaisInput("")).toBe("");
+    expect(formatReaisInput("5")).toBe("0,05");
+    expect(formatReaisInput("50")).toBe("0,50");
+    expect(formatReaisInput("500")).toBe("5,00");
+    expect(formatReaisInput("123456")).toBe("1.234,56");
+    expect(formatReaisInput("abc1.234,56xyz")).toBe("1.234,56");
   });
 });
