@@ -1,8 +1,15 @@
 /** PostgreSQL INTEGER max — valores monetários em centavos. */
 export const MAX_MONEY_CENTS = 2_147_483_647;
 
-export function formatReaisInput(_raw: string): string {
-  return "";
+const MAX_MONEY_DIGITS = String(MAX_MONEY_CENTS).length;
+
+export function formatReaisInput(raw: string): string {
+  const digits = raw.replace(/\D/g, "").slice(0, MAX_MONEY_DIGITS);
+  if (digits === "") {
+    return "";
+  }
+
+  return centsToReais(Number(digits));
 }
 
 export function reaisToCents(value: string): number {
