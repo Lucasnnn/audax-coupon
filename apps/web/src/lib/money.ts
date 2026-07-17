@@ -1,6 +1,9 @@
 /** PostgreSQL INTEGER max — valores monetários em centavos. */
 export const MAX_MONEY_CENTS = 2_147_483_647;
 
+/** Teto de digitação na UI: R$ 21.474.836,00 */
+export const MAX_REAIS_INPUT_CENTS = 2_147_483_600;
+
 const MAX_MONEY_DIGITS = String(MAX_MONEY_CENTS).length;
 
 export function formatReaisInput(raw: string): string {
@@ -9,7 +12,8 @@ export function formatReaisInput(raw: string): string {
     return "";
   }
 
-  return centsToReais(Number(digits));
+  const cents = Math.min(Number(digits), MAX_REAIS_INPUT_CENTS);
+  return centsToReais(cents);
 }
 
 export function reaisToCents(value: string): number {
@@ -32,7 +36,7 @@ export function reaisToCents(value: string): number {
 }
 
 export function assertMoneyCentsWithinLimit(cents: number): void {
-  if (cents > MAX_MONEY_CENTS) {
+  if (cents > MAX_REAIS_INPUT_CENTS) {
     throw new Error("O valor monetário ultrapassa o limite máximo permitido");
   }
 }
