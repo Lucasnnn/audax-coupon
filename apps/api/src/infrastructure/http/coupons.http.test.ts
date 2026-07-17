@@ -80,6 +80,18 @@ describe("Coupons HTTP", () => {
     expect(response.body.message).toMatch(/percentual/i);
   });
 
+  it("rejects creating a coupon with an invalid body shape", async () => {
+    const response = await request(app.getHttpServer())
+      .post("/coupons")
+      .send({
+        discountType: "PERCENTAGE",
+        discountValue: 10,
+      })
+      .expect(400);
+
+    expect(String(response.body.message)).toMatch(/código/i);
+  });
+
   it("rejects creating a coupon with a duplicated code", async () => {
     await request(app.getHttpServer())
       .post("/coupons")

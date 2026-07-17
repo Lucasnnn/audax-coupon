@@ -1,6 +1,8 @@
 import type { CouponDto } from "@audax/contracts";
 import { couponsApi } from "./coupons-api";
 
+export const CLIENT_LIST_PAGE_SIZE = 1000;
+
 export type CouponsStoreState = {
   items: CouponDto[];
   loaded: boolean;
@@ -83,7 +85,7 @@ export const couponsStore = {
 
     setState({ loading: true, error: null });
     try {
-      const result = await couponsApi.list(1, 1000);
+      const result = await couponsApi.list(1, CLIENT_LIST_PAGE_SIZE);
       setState({
         items: sortCouponsByCode(result.items),
         loaded: true,

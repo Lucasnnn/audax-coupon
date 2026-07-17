@@ -5,7 +5,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Inject,
   NotFoundException,
   Param,
   Patch,
@@ -16,38 +15,35 @@ import { CreateCouponUseCase } from "../../application/coupon/create-coupon.js";
 import { DeleteCouponUseCase } from "../../application/coupon/delete-coupon.js";
 import { GetCouponUseCase } from "../../application/coupon/get-coupon.js";
 import { ListCouponsUseCase } from "../../application/coupon/list-coupons.js";
-import {
-  UpdateCouponUseCase,
-  type UpdateCouponInput,
-} from "../../application/coupon/update-coupon.js";
+import { UpdateCouponUseCase } from "../../application/coupon/update-coupon.js";
 import type { Coupon } from "../../domain/coupon/coupon.js";
-import type { CreateCouponProps } from "../../domain/coupon/coupon.js";
 import { CouponErrors } from "../../domain/coupon/coupon-errors.js";
-import type { CouponRepository } from "../../domain/coupon/coupon-repository.js";
+import {
+  createCouponBodySchema,
+  listCouponsQuerySchema,
+  updateCouponBodySchema,
+  type CreateCouponBody,
+  type ListCouponsQuery,
+  type UpdateCouponBody,
+} from "./coupon.schemas.js";
 import { mapCouponHttpError } from "./map-coupon-http-error.js";
-import { COUPON_REPOSITORY } from "./tokens.js";
+import { ZodValidationPipe } from "./zod-validation.pipe.js";
 
 @Controller("coupons")
 export class CouponsController {
-  private readonly createCoupon: CreateCouponUseCase;
-  private readonly getCoupon: GetCouponUseCase;
-  private readonly listCoupons: ListCouponsUseCase;
-  private readonly updateCoupon: UpdateCouponUseCase;
-  private readonly deleteCoupon: DeleteCouponUseCase;
-
-  constructor(@Inject(COUPON_REPOSITORY) repository: CouponRepository) {
-    this.createCoupon = new CreateCouponUseCase(repository);
-    this.getCoupon = new GetCouponUseCase(repository);
-    this.listCoupons = new ListCouponsUseCase(repository);
-    this.updateCoupon = new UpdateCouponUseCase(repository);
-    this.deleteCoupon = new DeleteCouponUseCase(repository);
-  }
+  constructor(
+    private readonly createCoupon: CreateCouponUseCase,
+    private readonly getCoupon: GetCouponUseCase,
+    private readonly listCoupons: ListCouponsUseCase,
+    private readonly updateCoupon: UpdateCouponUseCase,
+    private readonly deleteCoupon: DeleteCouponUseCase,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async create(
-    @Body()
-    body: Omit<CreateCouponProps, "expiresAt"> & { expiresAt?: string },
+    @Body(new ZodValidationPipe(createCouponBodySchema))
+    body: CreateCouponBody,
   ) {
     try {
       const coupon = await this.createCoupon.execute({
@@ -62,12 +58,12 @@ export class CouponsController {
 
   @Get()
   async list(
-    @Query("page") page = "1",
-    @Query("pageSize") pageSize = "10",
+    @Query(new ZodValidationPipe(listCouponsQuerySchema))
+    query: ListCouponsQuery,
   ) {
     const result = await this.listCoupons.execute({
-      page: Number(page),
-      pageSize: Number(pageSize),
+      page: query.page,
+      pageSize: query.pageSize,
     });
 
     return {
@@ -91,10 +87,8 @@ export class CouponsController {
   @Patch(":id")
   async update(
     @Param("id") id: string,
-    @Body()
-    body: Omit<UpdateCouponInput, "id" | "expiresAt"> & {
-      expiresAt?: string | null;
-    },
+    @Body(new ZodValidationPipe(updateCouponBodySchema))
+    body: UpdateCouponBody,
   ) {
     try {
       await this.updateCoupon.execute({

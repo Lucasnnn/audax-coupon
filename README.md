@@ -134,9 +134,12 @@ pnpm test          # monorepo (Turbo)
 pnpm test:api      # só @audax/api
 ```
 
+CI (GitHub Actions): em todo `push`/`pull_request`, roda `pnpm test` (Node 22 + pnpm 9).
+
 - Runner: **Vitest** em todo o monorepo.
 - Domínio, casos de uso e HTTP usam **`InMemoryCouponRepository`** — sem Postgres e sem Docker nos testes.
 - O mapper Drizzle tem teste de round-trip isolado; a integração real com Postgres fica no caminho de execução (Docker / local com `DATABASE_URL`).
+- Na borda HTTP, **Zod** (`ZodValidationPipe`) valida o contrato do request antes do caso de uso; invariantes de domínio continuam no `domain`/`application`.
 
 ## Estrutura
 
@@ -147,6 +150,12 @@ packages/contracts DTOs, enums e códigos de erro compartilhados
 docs/adr/          decisões de arquitetura
 CONTEXT.md         linguagem ubíqua do domínio
 ```
+
+## Fases do histórico (como ler os commits)
+
+1. **Domínio + TDD** — entidade, casos de uso e HTTP com in-memory (`test:` → `feat:` em fatias).
+2. **Persistência** — porta `CouponRepository`, Drizzle/Postgres, Docker Compose e seed.
+3. **Produto / UX** — formulário, paginação, políticas na UI, store local e polish visual.
 
 ## Decisões de arquitetura e trade-offs
 
@@ -167,6 +176,14 @@ CONTEXT.md         linguagem ubíqua do domínio
 | `infrastructure` | HTTP Nest, Drizzle/Postgres, in-memory |
 
 **Trade-off:** compartilhar pacotes de domínio com o front aceleraria tipagem, mas duplicaria donos do modelo e acoplaria UI ao núcleo. Contracts + `CONTEXT.md` unificam a linguagem sem vazar o domínio.
+
+Casos de uso são registrados como **providers Nest** via `useFactory` + `inject: [COUPON_REPOSITORY]` no `CouponsModule` — DI na infra sem colocar decorators Nest na camada de application.
+
+### Store do front e `pageSize=1000`
+
+**Decisão:** a UI carrega a lista uma vez (`CLIENT_LIST_PAGE_SIZE = 1000`), guarda em store (`useSyncExternalStore`) e pagina no cliente; mutações (criar/atualizar/excluir) atualizam o estado local com a resposta da API, sem relistar.
+
+**Trade-off:** evita GET repetido a cada toggle/página — adequado ao CRUD de gestão com volume moderado. Se o catálogo crescer além disso, trocar para paginação server-side (ou `couponsStore.load({ force: true })` com janelas menores). O teto de `pageSize` na API Zod é 1000, alinhado a esse fetch.
 
 ### Persistência: porta + Drizzle/Postgres + in-memory nos testes
 
