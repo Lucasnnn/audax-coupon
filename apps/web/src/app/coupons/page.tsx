@@ -174,8 +174,7 @@ export default function CouponsPage() {
           <p className={styles.eyebrow}>Audax</p>
           <h1>Cupons</h1>
           <p className={styles.subtitle}>
-            Gestão de cupons de desconto. Valores monetários em reais; a API
-            recebe centavos.
+            Gestão de cupons de desconto.
           </p>
         </div>
         <p className={styles.meta}>{total} cadastrados</p>
