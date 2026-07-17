@@ -7,7 +7,11 @@ export function isExpirationNotBeforeToday(
     return false;
   }
 
-  return startOfUtcDay(date) >= startOfUtcDay(now);
+  if (startOfUtcDay(date) < startOfUtcDay(now)) {
+    return false;
+  }
+
+  return date.getTime() > now.getTime();
 }
 
 function startOfUtcDay(date: Date): number {

@@ -10,6 +10,10 @@ export function assertExpirationNotBeforeToday(
   if (expirationDay < today) {
     throw new Error(CouponErrors.expirationBeforeToday);
   }
+
+  if (expiresAt.getTime() <= now.getTime()) {
+    throw new Error(CouponErrors.expirationNotInFuture);
+  }
 }
 
 function startOfUtcDay(date: Date): number {

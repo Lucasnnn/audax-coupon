@@ -25,7 +25,7 @@ Estado operacional controlado pelo operador: `ACTIVE` (disponível para consumo 
 _Avoid_: EXPIRED (como status), Enabled, Disabled, Published
 
 **Expiration date**:
-Instante opcional a partir do qual o cupom deixa de ser considerado válido. Na gestão, ao definir ou alterar a Expiration date, ela não pode ser anterior ao dia corrente em UTC (política na application; a UI valida preventivamente com a mesma regra). Na listagem de gestão, a comparação por instante (“já passou da Expiration date?”) marca o cupom como expirado na UI; a outra ponta reutiliza a noção ao avaliar elegibilidade.
+Instante opcional a partir do qual o cupom deixa de ser considerado válido. Na gestão, ao definir ou alterar a Expiration date, ela não pode ser anterior ao dia corrente em UTC **nem um instante já passado** (política na application; a UI valida preventivamente com a mesma regra). Na listagem de gestão, a comparação por instante (“já passou da Expiration date?”) marca o cupom como expirado na UI; a outra ponta reutiliza a noção ao avaliar elegibilidade.
 _Avoid_: Expiry status, Validity flag
 
 **Minimum order amount**:

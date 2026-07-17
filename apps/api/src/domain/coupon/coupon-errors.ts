@@ -9,6 +9,7 @@ export const CouponErrors = {
   minOrderTooLow:
     "O valor mínimo do pedido deve ser maior ou igual ao valor do desconto fixo",
   expirationBeforeToday: "A data de expiração não pode ser anterior a hoje",
+  expirationNotInFuture: "A data de expiração deve ser um instante futuro",
   usedCannotDelete: "Cupons já utilizados não podem ser excluídos",
   usedCannotChangeDiscount:
     "Tipo e valor do desconto não podem ser alterados após o uso do cupom",
