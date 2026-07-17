@@ -105,6 +105,52 @@ describe("UpdateCouponUseCase", () => {
     ).rejects.toThrow(/desconto não podem ser alterados/i);
   });
 
+  it("rejects incomplete discount patch with only discountValue", async () => {
+    const repository = new InMemoryCouponRepository();
+    const createCoupon = new CreateCouponUseCase(repository);
+    const updateCoupon = new UpdateCouponUseCase(repository);
+    const getCoupon = new GetCouponUseCase(repository);
+
+    const created = await createCoupon.execute({
+      code: "PARTIAL",
+      discountType: "PERCENTAGE",
+      discountValue: 10,
+    });
+
+    await expect(
+      updateCoupon.execute({
+        id: created.id,
+        discountValue: 20,
+      }),
+    ).rejects.toThrow(/discountType e discountValue juntos/i);
+
+    const unchanged = await getCoupon.execute(created.id);
+    expect(unchanged.discountValue).toBe(10);
+  });
+
+  it("updates minOrderAmount alone while keeping current discount", async () => {
+    const repository = new InMemoryCouponRepository();
+    const createCoupon = new CreateCouponUseCase(repository);
+    const updateCoupon = new UpdateCouponUseCase(repository);
+    const getCoupon = new GetCouponUseCase(repository);
+
+    const created = await createCoupon.execute({
+      code: "MINONLY",
+      discountType: "FIXED",
+      discountValue: 1000,
+      minOrderAmount: 5000,
+    });
+
+    await updateCoupon.execute({
+      id: created.id,
+      minOrderAmount: 8000,
+    });
+
+    const updated = await getCoupon.execute(created.id);
+    expect(updated.discountValue).toBe(1000);
+    expect(updated.minOrderAmount).toBe(8000);
+  });
+
   it("updates fixed discount while usage count is zero", async () => {
     const repository = new InMemoryCouponRepository();
     const createCoupon = new CreateCouponUseCase(repository);
