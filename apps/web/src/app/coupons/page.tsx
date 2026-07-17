@@ -5,7 +5,8 @@ import type { CouponDto, DiscountType } from "@audax/contracts";
 import { couponsApi } from "@/lib/coupons-api";
 import { isCouponExpired } from "@/lib/coupon-expiration";
 import { canDeleteCoupon } from "@/lib/coupon-ops";
-import { toDatetimeLocalValue } from "@/lib/datetime-local";
+import { minDatetimeLocalToday, toDatetimeLocalValue } from "@/lib/datetime-local";
+import { isExpirationNotBeforeToday } from "@/lib/expiration-guard";
 import { centsToReais, reaisToCents } from "@/lib/money";
 import styles from "./coupons.module.css";
 
@@ -84,6 +85,12 @@ export default function CouponsPage() {
       ) {
         throw new Error("Fixed coupons require a min order amount in reais");
       }
+      if (
+        form.expiresAt.trim() !== "" &&
+        !isExpirationNotBeforeToday(form.expiresAt)
+      ) {
+        throw new Error("Expiration date cannot be before today");
+      }
 
       await couponsApi.create({
         code: form.code,
@@ -141,6 +148,9 @@ export default function CouponsPage() {
     setError(null);
     try {
       const draft = expirationDraft(coupon).trim();
+      if (draft !== "" && !isExpirationNotBeforeToday(draft)) {
+        throw new Error("Expiration date cannot be before today");
+      }
       await couponsApi.update(coupon.id, {
         expiresAt: draft === "" ? null : new Date(draft).toISOString(),
       });
@@ -234,6 +244,7 @@ export default function CouponsPage() {
             Expira em
             <input
               type="datetime-local"
+              min={minDatetimeLocalToday()}
               value={form.expiresAt}
               onChange={(e) =>
                 setForm({ ...form, expiresAt: e.target.value })
@@ -289,6 +300,7 @@ export default function CouponsPage() {
                   Expira em
                   <input
                     type="datetime-local"
+                    min={minDatetimeLocalToday()}
                     value={expirationDraft(coupon)}
                     onChange={(e) =>
                       setExpirationDrafts((current) => ({

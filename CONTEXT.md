@@ -25,7 +25,7 @@ Estado operacional controlado pelo operador: `ACTIVE` (disponível para consumo 
 _Avoid_: EXPIRED (como status), Enabled, Disabled, Published
 
 **Expiration date**:
-Instante opcional a partir do qual o cupom deixa de ser considerado válido. Usado neste contexto para filtros de listagem; a outra ponta reutiliza a mesma noção ao avaliar elegibilidade.
+Instante opcional a partir do qual o cupom deixa de ser considerado válido. Na gestão, ao definir ou alterar a Expiration date, ela não pode ser anterior ao dia corrente (política na application; a UI valida preventivamente). Usada neste contexto para filtros de listagem; a outra ponta reutiliza a mesma noção ao avaliar elegibilidade.
 _Avoid_: Expiry status, Validity flag
 
 **Minimum order amount**:
