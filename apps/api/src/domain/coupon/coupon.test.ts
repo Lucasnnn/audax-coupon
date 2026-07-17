@@ -37,6 +37,17 @@ describe("Coupon", () => {
     ).toThrow(/valor mínimo de pedido/i);
   });
 
+  it("rejects a fixed discount value that is not strictly positive", () => {
+    expect(() =>
+      Coupon.create({
+        code: "SAVE0",
+        discountType: "FIXED",
+        discountValue: 0,
+        minOrderAmount: 1000,
+      }),
+    ).toThrow(/desconto fixo deve ser um inteiro estritamente positivo/i);
+  });
+
   it("rejects a fixed coupon when min order amount is below the discount value", () => {
     expect(() =>
       Coupon.create({
