@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import type { CouponDto, DiscountType } from "@audax/contracts";
 import { couponsApi } from "@/lib/coupons-api";
 import { isCouponExpired } from "@/lib/coupon-expiration";
 import { canChangeExpiration, canDeleteCoupon } from "@/lib/coupon-ops";
-import { minDatetimeLocalToday, toDatetimeLocalValue } from "@/lib/datetime-local";
+import { formatExpirationDisplay, minDatetimeLocalToday, toDatetimeLocalValue } from "@/lib/datetime-local";
 import { isExpirationNotBeforeToday } from "@/lib/expiration-guard";
 import { centsToReais, reaisToCents } from "@/lib/money";
 import styles from "./coupons.module.css";
@@ -41,6 +41,8 @@ export default function CouponsPage() {
   const [couponPendingDelete, setCouponPendingDelete] =
     useState<CouponDto | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const listSectionRef = useRef<HTMLSectionElement>(null);
+  const skipListScrollRef = useRef(true);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -64,6 +66,14 @@ export default function CouponsPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (skipListScrollRef.current) {
+      skipListScrollRef.current = false;
+      return;
+    }
+    listSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [page]);
 
   async function refreshAfterMutation() {
     if (page !== 1) {
@@ -144,8 +154,6 @@ export default function CouponsPage() {
   async function removeCoupon(coupon: CouponDto) {
     setError(null);
     if (!canDeleteCoupon(coupon.usageCount)) {
-      setError("Cupons já utilizados não podem ser excluídos");
-      setCouponPendingDelete(null);
       return;
     }
     setDeleting(true);
@@ -307,7 +315,7 @@ export default function CouponsPage() {
         </form>
       </section>
 
-      <section className={styles.panel}>
+      <section className={styles.panel} ref={listSectionRef}>
         <div className={styles.listHeader}>
           <h2>Lista</h2>
           {!loading && total > 0 ? (
@@ -375,33 +383,31 @@ export default function CouponsPage() {
                       />
                       <span className={styles.toggleTrack} aria-hidden="true" />
                     </label>
-                    {canDeleteCoupon(coupon.usageCount) ? (
-                      <button
-                        type="button"
-                        className={styles.iconDanger}
-                        aria-label="Remover cupom"
-                        title="Remover"
-                        onClick={() => setCouponPendingDelete(coupon)}
+                    <button
+                      type="button"
+                      className={styles.iconDanger}
+                      aria-label="Remover cupom"
+                      title="Remover"
+                      onClick={() => setCouponPendingDelete(coupon)}
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        width="18"
+                        height="18"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
                       >
-                        <svg
-                          viewBox="0 0 24 24"
-                          width="18"
-                          height="18"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.8"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          aria-hidden="true"
-                        >
-                          <path d="M3 6h18" />
-                          <path d="M8 6V4h8v2" />
-                          <path d="M19 6l-1 14H6L5 6" />
-                          <path d="M10 11v6" />
-                          <path d="M14 11v6" />
-                        </svg>
-                      </button>
-                    ) : null}
+                        <path d="M3 6h18" />
+                        <path d="M8 6V4h8v2" />
+                        <path d="M19 6l-1 14H6L5 6" />
+                        <path d="M10 11v6" />
+                        <path d="M14 11v6" />
+                      </svg>
+                    </button>
                   </div>
                 </div>
 
@@ -435,7 +441,7 @@ export default function CouponsPage() {
                       </div>
                     ) : (
                       <p className={styles.expirationLocked}>
-                        {toDatetimeLocalValue(coupon.expiresAt) || "—"}
+                        {formatExpirationDisplay(coupon.expiresAt) || "—"}
                         <span>Expirado — data bloqueada</span>
                       </p>
                     )}
@@ -489,30 +495,56 @@ export default function CouponsPage() {
             aria-describedby="delete-coupon-desc"
             onClick={(event) => event.stopPropagation()}
           >
-            <h3 id="delete-coupon-title">Excluir cupom?</h3>
-            <p id="delete-coupon-desc">
-              Tem certeza que deseja excluir o cupom{" "}
-              <strong>{couponPendingDelete.code}</strong>? Essa ação não pode
-              ser desfeita.
-            </p>
-            <div className={styles.dialogActions}>
-              <button
-                type="button"
-                className={styles.dialogCancel}
-                disabled={deleting}
-                onClick={() => setCouponPendingDelete(null)}
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                className={styles.dialogConfirm}
-                disabled={deleting}
-                onClick={() => void removeCoupon(couponPendingDelete)}
-              >
-                {deleting ? "Excluindo..." : "Excluir"}
-              </button>
-            </div>
+            {canDeleteCoupon(couponPendingDelete.usageCount) ? (
+              <>
+                <h3 id="delete-coupon-title">Excluir cupom?</h3>
+                <p id="delete-coupon-desc">
+                  Tem certeza que deseja excluir o cupom{" "}
+                  <strong>{couponPendingDelete.code}</strong>? Essa ação não
+                  pode ser desfeita.
+                </p>
+                <div className={styles.dialogActions}>
+                  <button
+                    type="button"
+                    className={styles.dialogCancel}
+                    disabled={deleting}
+                    onClick={() => setCouponPendingDelete(null)}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.dialogConfirm}
+                    disabled={deleting}
+                    onClick={() => void removeCoupon(couponPendingDelete)}
+                  >
+                    {deleting ? "Excluindo..." : "Excluir"}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 id="delete-coupon-title">Exclusão não permitida</h3>
+                <p id="delete-coupon-desc">
+                  O cupom <strong>{couponPendingDelete.code}</strong> não pode
+                  ser excluído porque já possui{" "}
+                  {couponPendingDelete.usageCount}{" "}
+                  {couponPendingDelete.usageCount === 1
+                    ? "caso de uso"
+                    : "casos de uso"}
+                  .
+                </p>
+                <div className={styles.dialogActions}>
+                  <button
+                    type="button"
+                    className={styles.dialogCancel}
+                    onClick={() => setCouponPendingDelete(null)}
+                  >
+                    Entendi
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       ) : null}
