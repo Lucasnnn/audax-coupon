@@ -33,8 +33,8 @@ Valor mínimo de pedido exigido pela política do cupom, em centavos. Obrigatór
 _Avoid_: Threshold, floor (como termos canônicos); float para dinheiro
 
 **Money (centavos)**:
-Representação de valores monetários como inteiro em centavos (ex.: `1500` = R$ 15,00). Usada em Discount value quando `FIXED` e em Minimum order amount no contrato/API. Moeda implícita: BRL neste escopo. Na UI de gestão, esses valores são capturados e exibidos em reais e convertidos para centavos na borda HTTP.
-_Avoid_: float/double para dinheiro; Decimal como tipo de domínio neste entregável
+Representação de valores monetários como inteiro em centavos (ex.: `1500` = R$ 15,00). Usada em Discount value quando `FIXED` e em Minimum order amount no contrato/API. Moeda implícita: BRL neste escopo. Na UI de gestão, esses valores são capturados e exibidos em reais e convertidos para centavos na borda HTTP. Há um teto explícito na ordem de dezenas de milhões de reais — suficiente para o escopo atual; acima disso o valor é rejeitado (não se modela dinheiro “ilimitado” neste contexto).
+_Avoid_: float/double para dinheiro; Decimal/bigint como tipo de domínio neste entregável; teto artificialmente baixo “por precaução”
 
 **Usage count**:
 Quantidade de vezes que o cupom já foi utilizado com sucesso. Neste contexto de gestão, o campo é somente leitura e alimenta políticas de mutabilidade na camada de application: enquanto for zero, o cupom pode ser deletado e `Discount type` / `Discount value` podem ser alterados; após o primeiro uso, o cupom não pode mais ser deletado e só `Coupon status` e `Expiration date` permanecem editáveis. A escrita do contador pertence à ponta consumidora (registro de uso), não ao fluxo de gestão deste contexto.

@@ -152,7 +152,7 @@ Resumo abaixo; o “porquê” formal está em [`docs/adr/`](docs/adr/) e a ling
 | Monorepo | Turborepo + pnpm | Setup leve vs governança Nx (geradores/boundaries) em times maiores — [ADR 0001](docs/adr/0001-monorepo-turborepo-pnpm.md) |
 | Hexagonal | `domain` → `application` → `infrastructure`; web só HTTP + contracts | Tipagem compartilhada sem vazar domínio; erros de domínio ficam na API — [ADR 0002](docs/adr/0002-hexagonal-layers-and-contracts.md) |
 | Persistência | Porta + Drizzle/Postgres; in-memory em testes e `dev:memory` | SQL revisável vs DX Prisma; dados memory não sobrevivem ao restart — [ADR 0003](docs/adr/0003-persistence-drizzle-postgres.md) |
-| Dinheiro / ciclo de vida | Centavos na API; status só ACTIVE/INACTIVE; políticas pós-uso na application | Conversão reais↔centavos no front; sem status EXPIRED — [ADR 0004](docs/adr/0004-coupon-lifecycle-and-money.md) |
+| Dinheiro / ciclo de vida | Centavos na API; teto alinhado a INTEGER (sem bigint por enquanto); status só ACTIVE/INACTIVE; políticas pós-uso na application | Conversão reais↔centavos no front; sem status EXPIRED — [ADR 0004](docs/adr/0004-coupon-lifecycle-and-money.md), [ADR 0007](docs/adr/0007-money-integer-ceiling.md) |
 | Testes | Vitest no monorepo | Um runner ESM para API e web — [ADR 0005](docs/adr/0005-vitest.md) |
 | Git | Commits na `main` com revisão local neste entregável | Em colaboração, branches + PRs — [ADR 0006](docs/adr/0006-git-workflow-main-vs-prs.md) |
 
