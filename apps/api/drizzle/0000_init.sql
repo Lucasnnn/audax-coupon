@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS coupons (
   usage_count INTEGER NOT NULL DEFAULT 0,
   min_order_amount INTEGER,
   expires_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT coupons_discount_type_check
     CHECK (discount_type IN ('PERCENTAGE', 'FIXED')),
   CONSTRAINT coupons_status_check

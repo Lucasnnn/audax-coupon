@@ -11,7 +11,11 @@ const drizzleDir = join(
 export async function ensureCouponSchema(databaseUrl: string): Promise<void> {
   const sql = postgres(databaseUrl, { max: 1 });
   try {
-    for (const file of ["0000_init.sql", "0002_coupon_checks.sql"]) {
+    for (const file of [
+      "0000_init.sql",
+      "0002_coupon_checks.sql",
+      "0003_created_at.sql",
+    ]) {
       const migration = readFileSync(join(drizzleDir, file), "utf8");
       await sql.unsafe(migration);
     }

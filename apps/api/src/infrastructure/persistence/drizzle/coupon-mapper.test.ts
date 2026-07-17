@@ -14,6 +14,7 @@ describe("coupon drizzle mapper", () => {
       usageCount: 2,
       minOrderAmount: undefined,
       expiresAt: new Date("2027-01-01T00:00:00.000Z"),
+      createdAt: new Date("2026-01-01T00:00:00.000Z"),
     });
 
     const row: CouponRow = {
@@ -21,6 +22,7 @@ describe("coupon drizzle mapper", () => {
       usageCount: coupon.usageCount,
       minOrderAmount: null,
       expiresAt: coupon.expiresAt ?? null,
+      createdAt: coupon.createdAt,
     };
     const restored = couponFromRow(row);
 
@@ -32,6 +34,7 @@ describe("coupon drizzle mapper", () => {
     expect(restored.usageCount).toBe(coupon.usageCount);
     expect(restored.minOrderAmount).toBeUndefined();
     expect(restored.expiresAt).toEqual(coupon.expiresAt);
+    expect(restored.createdAt).toEqual(coupon.createdAt);
   });
 
   it("round-trips a fixed coupon with min order amount", () => {
@@ -44,6 +47,7 @@ describe("coupon drizzle mapper", () => {
       usageCount: 0,
       minOrderAmount: 5000,
       expiresAt: undefined,
+      createdAt: new Date("2026-03-01T00:00:00.000Z"),
     });
 
     const row: CouponRow = {
@@ -51,6 +55,7 @@ describe("coupon drizzle mapper", () => {
       usageCount: coupon.usageCount,
       minOrderAmount: coupon.minOrderAmount ?? null,
       expiresAt: coupon.expiresAt ?? null,
+      createdAt: coupon.createdAt,
     };
     const restored = couponFromRow(row);
 

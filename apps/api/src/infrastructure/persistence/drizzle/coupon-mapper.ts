@@ -15,6 +15,7 @@ export function couponToRow(coupon: Coupon): CouponInsert {
     usageCount: coupon.usageCount,
     minOrderAmount: coupon.minOrderAmount ?? null,
     expiresAt: coupon.expiresAt ?? null,
+    createdAt: coupon.createdAt,
   };
 }
 
@@ -28,5 +29,6 @@ export function couponFromRow(row: CouponRow): Coupon {
     usageCount: row.usageCount,
     minOrderAmount: row.minOrderAmount ?? undefined,
     expiresAt: row.expiresAt ?? undefined,
+    createdAt: row.createdAt,
   });
 }

@@ -12,6 +12,7 @@ services:
       - ./apps/api/drizzle/0000_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
       - ./apps/api/drizzle/0001_seed_mock_coupons.sql:/docker-entrypoint-initdb.d/002_seed_mock_coupons.sql:ro
       - ./apps/api/drizzle/0002_coupon_checks.sql:/docker-entrypoint-initdb.d/003_coupon_checks.sql:ro
+      - ./apps/api/drizzle/0003_created_at.sql:/docker-entrypoint-initdb.d/004_created_at.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U audax -d audax"]
       interval: 5s

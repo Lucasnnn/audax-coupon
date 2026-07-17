@@ -1,4 +1,4 @@
-import { count, eq, sql } from "drizzle-orm";
+import { count, desc, eq } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import type { Coupon } from "../../../domain/coupon/coupon.js";
 import type {
@@ -57,7 +57,7 @@ export class DrizzleCouponRepository implements CouponRepository {
     const rows: CouponRow[] = await this.db
       .select()
       .from(coupons)
-      .orderBy(sql`${coupons.code} asc`)
+      .orderBy(desc(coupons.createdAt))
       .limit(params.pageSize)
       .offset(offset);
 

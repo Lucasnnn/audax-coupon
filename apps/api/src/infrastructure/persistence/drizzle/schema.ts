@@ -15,6 +15,9 @@ export const coupons = pgTable("coupons", {
   usageCount: integer("usage_count").notNull().default(0),
   minOrderAmount: integer("min_order_amount"),
   expiresAt: timestamp("expires_at", { withTimezone: true, mode: "date" }),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+    .notNull()
+    .defaultNow(),
 });
 
 export type CouponRow = typeof coupons.$inferSelect;
