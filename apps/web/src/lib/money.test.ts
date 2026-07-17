@@ -22,17 +22,41 @@ describe("money", () => {
   });
 
   it("masks digits as Brazilian reais while typing", () => {
-    expect(formatReaisInput("")).toBe("");
-    expect(formatReaisInput("5")).toBe("0,05");
-    expect(formatReaisInput("50")).toBe("0,50");
-    expect(formatReaisInput("500")).toBe("5,00");
-    expect(formatReaisInput("123456")).toBe("1.234,56");
-    expect(formatReaisInput("abc1.234,56xyz")).toBe("1.234,56");
+    expect(formatReaisInput("")).toEqual({ value: "", exceededMax: false });
+    expect(formatReaisInput("5")).toEqual({
+      value: "0,05",
+      exceededMax: false,
+    });
+    expect(formatReaisInput("50")).toEqual({
+      value: "0,50",
+      exceededMax: false,
+    });
+    expect(formatReaisInput("500")).toEqual({
+      value: "5,00",
+      exceededMax: false,
+    });
+    expect(formatReaisInput("123456")).toEqual({
+      value: "1.234,56",
+      exceededMax: false,
+    });
+    expect(formatReaisInput("abc1.234,56xyz")).toEqual({
+      value: "1.234,56",
+      exceededMax: false,
+    });
   });
 
-  it("caps masked input at R$ 21.474.836,00", () => {
-    expect(formatReaisInput("2147483600")).toBe("21.474.836,00");
-    expect(formatReaisInput("2147483647")).toBe("21.474.836,00");
-    expect(formatReaisInput("99999999999")).toBe("21.474.836,00");
+  it("caps masked input at R$ 21.474.836,00 and signals the limit", () => {
+    expect(formatReaisInput("2147483600")).toEqual({
+      value: "21.474.836,00",
+      exceededMax: false,
+    });
+    expect(formatReaisInput("2147483647")).toEqual({
+      value: "21.474.836,00",
+      exceededMax: true,
+    });
+    expect(formatReaisInput("99999999999")).toEqual({
+      value: "21.474.836,00",
+      exceededMax: true,
+    });
   });
 });
