@@ -83,6 +83,17 @@ describe("Coupon", () => {
     ).toThrow(/valor mínimo do pedido/i);
   });
 
+  it("rejects a min order amount above the maximum money amount in cents", () => {
+    expect(() =>
+      Coupon.create({
+        code: "HUGE",
+        discountType: "PERCENTAGE",
+        discountValue: 12,
+        minOrderAmount: 100_000_000_000,
+      }),
+    ).toThrow(/limite máximo/i);
+  });
+
   it("rejects an empty coupon code", () => {
     expect(() =>
       Coupon.create({
