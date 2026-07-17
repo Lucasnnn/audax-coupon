@@ -14,4 +14,9 @@ describe("money", () => {
     expect(centsToReais(1550)).toBe("15,50");
     expect(centsToReais(1)).toBe("0,01");
   });
+
+  it("rejects empty or invalid monetary input", () => {
+    expect(() => reaisToCents("")).toThrow(/number/i);
+    expect(() => reaisToCents("abc")).toThrow(/number/i);
+  });
 });
