@@ -107,7 +107,7 @@ pnpm test          # monorepo (Turbo)
 pnpm test:api      # só @audax/api
 ```
 
-CI (GitHub Actions): em todo `push`/`pull_request`, roda testes, typecheck e build de produção do web (Node 22 + pnpm 9).
+CI (GitHub Actions): em `push` na `main` e em todo `pull_request`, roda testes, typecheck, lint do web e build de produção do web (Node 22 + pnpm 9).
 
 - Runner: **Vitest** em todo o monorepo.
 - Domínio, casos de uso e HTTP usam **`InMemoryCouponRepository`** — sem Postgres e sem Docker nos testes.
@@ -156,7 +156,7 @@ Resumo abaixo; o “porquê” formal está em [`docs/adr/`](docs/adr/) e a ling
 | Testes | Vitest no monorepo | Um runner ESM para API e web — [ADR 0005](docs/adr/0005-vitest.md) |
 | Git | Commits na `main` com revisão local neste entregável | Em colaboração, branches + PRs — [ADR 0006](docs/adr/0006-git-workflow-main-vs-prs.md) |
 
-**Store do front:** lista uma vez (`pageSize=1000`), pagina no cliente e aplica mutações no estado local — adequado ao volume de gestão; se crescer, paginação server-side.
+**Store do front:** lista uma vez (`pageSize=1000`), pagina no cliente e aplica mutações no estado local — adequado ao volume de gestão; se a API reportar `total` maior que o carregado, a UI avisa o teto. Se crescer de verdade, paginação server-side.
 
 **DI Nest:** casos de uso como providers via `useFactory` + `inject: [COUPON_REPOSITORY]` — DI na infra sem decorators Nest na application.
 
