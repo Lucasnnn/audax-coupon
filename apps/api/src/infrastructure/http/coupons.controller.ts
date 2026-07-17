@@ -86,15 +86,25 @@ export class CouponsController {
   @Patch(":id")
   async update(
     @Param("id") id: string,
-    @Body() body: Omit<UpdateCouponInput, "id">,
+    @Body()
+    body: Omit<UpdateCouponInput, "id" | "expiresAt"> & {
+      expiresAt?: string | null;
+    },
   ) {
     try {
-      await this.updateCoupon.execute({ id, ...body });
+      await this.updateCoupon.execute({
+        id,
+        ...body,
+        expiresAt: parseExpiresAtInput(body.expiresAt),
+      });
       const coupon = await this.getCoupon.execute(id);
       return this.toResponse(coupon);
     } catch (error) {
       if (error instanceof Error && /not found/i.test(error.message)) {
         throw new NotFoundException("Coupon not found");
+      }
+      if (error instanceof Error && /discount/i.test(error.message)) {
+        throw new ConflictException(error.message);
       }
       throw error;
     }
@@ -132,4 +142,16 @@ export class CouponsController {
 
 function parseExpiresAt(value?: string): Date | undefined {
   return value ? new Date(value) : undefined;
+}
+
+function parseExpiresAtInput(
+  value?: string | null,
+): Date | null | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (value === null) {
+    return null;
+  }
+  return new Date(value);
 }
