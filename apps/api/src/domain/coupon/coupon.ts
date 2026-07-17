@@ -87,10 +87,6 @@ export class Coupon {
   }
 
   changeDiscount(props: ChangeDiscountProps): void {
-    if (this.usageCount > 0) {
-      throw new Error("Discount type and value cannot change after the coupon has been used");
-    }
-
     Coupon.assertDiscountInvariants(props);
 
     this._discountType = props.discountType;
