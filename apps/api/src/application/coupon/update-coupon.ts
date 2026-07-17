@@ -28,15 +28,40 @@ export class UpdateCouponUseCase {
       coupon.activate();
     }
 
-    if (input.discountType !== undefined && input.discountValue !== undefined) {
+    const hasDiscountField =
+      input.discountType !== undefined ||
+      input.discountValue !== undefined ||
+      input.minOrderAmount !== undefined;
+
+    if (hasDiscountField) {
+      const hasTypeAndValue =
+        input.discountType !== undefined && input.discountValue !== undefined;
+      const onlyMinOrder =
+        input.minOrderAmount !== undefined &&
+        input.discountType === undefined &&
+        input.discountValue === undefined;
+
+      if (!hasTypeAndValue && !onlyMinOrder) {
+        throw new Error(CouponErrors.incompleteDiscountPatch);
+      }
+
       if (coupon.usageCount > 0) {
         throw new Error(CouponErrors.usedCannotChangeDiscount);
       }
-      coupon.changeDiscount({
-        discountType: input.discountType,
-        discountValue: input.discountValue,
-        minOrderAmount: input.minOrderAmount,
-      });
+
+      if (hasTypeAndValue) {
+        coupon.changeDiscount({
+          discountType: input.discountType!,
+          discountValue: input.discountValue!,
+          minOrderAmount: input.minOrderAmount,
+        });
+      } else {
+        coupon.changeDiscount({
+          discountType: coupon.discountType,
+          discountValue: coupon.discountValue,
+          minOrderAmount: input.minOrderAmount,
+        });
+      }
     }
 
     if (input.expiresAt !== undefined) {
