@@ -116,6 +116,24 @@ export class Coupon {
   }
 
   static reconstitute(props: ReconstituteCouponProps): Coupon {
+    if (props.code.trim().length === 0) {
+      throw new Error(CouponErrors.codeEmpty);
+    }
+    if (
+      !Number.isInteger(props.usageCount) ||
+      props.usageCount < 0
+    ) {
+      throw new Error(CouponErrors.invalidUsageCount);
+    }
+    if (props.status !== "ACTIVE" && props.status !== "INACTIVE") {
+      throw new Error(CouponErrors.invalidStatus);
+    }
+    Coupon.assertDiscountInvariants({
+      discountType: props.discountType,
+      discountValue: props.discountValue,
+      minOrderAmount: props.minOrderAmount,
+    });
+
     return new Coupon(
       props.id,
       props.code,

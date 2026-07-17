@@ -2,6 +2,8 @@ export const CouponErrors = {
   notFound: "Cupom não encontrado",
   codeEmpty: "O código do cupom não pode ser vazio",
   codeUnique: "O código do cupom deve ser único",
+  invalidUsageCount: "A contagem de uso deve ser um inteiro não negativo",
+  invalidStatus: "Status do cupom inválido",
   percentageRange: "O valor percentual deve ser um inteiro entre 1 e 100",
   fixedRequiresMin: "Desconto fixo exige um valor mínimo de pedido",
   fixedPositive:
