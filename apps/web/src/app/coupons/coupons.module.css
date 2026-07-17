@@ -307,15 +307,15 @@
   padding: 0;
   border: 1px solid transparent;
   border-radius: 8px;
-  color: var(--muted);
+  color: #c45c5c;
   background: transparent;
   cursor: pointer;
 }
 
 .iconDanger:hover {
-  color: var(--danger);
-  background: var(--danger-bg);
-  border-color: #f0b4b4;
+  border-color: #e08a8a;
+  color: #b33a3a;
+  background: transparent;
 }
 
 .badgeExpired {
