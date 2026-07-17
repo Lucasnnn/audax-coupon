@@ -29,4 +29,10 @@ describe("money", () => {
     expect(formatReaisInput("123456")).toBe("1.234,56");
     expect(formatReaisInput("abc1.234,56xyz")).toBe("1.234,56");
   });
+
+  it("caps masked input at R$ 21.474.836,00", () => {
+    expect(formatReaisInput("2147483600")).toBe("21.474.836,00");
+    expect(formatReaisInput("2147483647")).toBe("21.474.836,00");
+    expect(formatReaisInput("99999999999")).toBe("21.474.836,00");
+  });
 });
