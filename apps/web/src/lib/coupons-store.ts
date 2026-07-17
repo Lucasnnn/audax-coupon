@@ -104,6 +104,8 @@ export const couponsStore = {
   add(coupon: CouponDto): void {
     setState({
       items: sortCouponsByCode([...state.items, coupon]),
+      error: null,
+      loaded: true,
     });
   },
 
@@ -112,12 +114,14 @@ export const couponsStore = {
       items: sortCouponsByCode(
         state.items.map((item) => (item.id === coupon.id ? coupon : item)),
       ),
+      error: null,
     });
   },
 
   remove(id: string): void {
     setState({
       items: state.items.filter((item) => item.id !== id),
+      error: null,
     });
   },
 };
