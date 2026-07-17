@@ -16,7 +16,7 @@ export function mapCouponHttpError(error: unknown): never {
   if (
     /unique/i.test(error.message) ||
     /cannot be deleted/i.test(error.message) ||
-    /discount/i.test(error.message)
+    /cannot change after the coupon has been used/i.test(error.message)
   ) {
     throw new ConflictException(error.message);
   }
