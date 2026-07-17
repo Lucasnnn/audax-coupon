@@ -52,7 +52,7 @@ describe("Coupons HTTP", () => {
   });
 
   it("rejects creating a coupon with expiration before today", async () => {
-    await request(app.getHttpServer())
+    const response = await request(app.getHttpServer())
       .post("/coupons")
       .send({
         code: "PASTHTTP",
@@ -61,6 +61,35 @@ describe("Coupons HTTP", () => {
         expiresAt: "2020-01-01T00:00:00.000Z",
       })
       .expect(400);
+
+    expect(response.body.message).toMatch(/expiration date cannot be before today/i);
+  });
+
+  it("rejects creating a coupon with an invalid percentage", async () => {
+    const response = await request(app.getHttpServer())
+      .post("/coupons")
+      .send({
+        code: "BADPCT",
+        discountType: "PERCENTAGE",
+        discountValue: 150,
+      })
+      .expect(400);
+
+    expect(response.body.message).toMatch(/percentage/i);
+  });
+
+  it("rejects creating a coupon with a duplicated code", async () => {
+    await request(app.getHttpServer())
+      .post("/coupons")
+      .send({ code: "DUP", discountType: "PERCENTAGE", discountValue: 10 })
+      .expect(201);
+
+    const response = await request(app.getHttpServer())
+      .post("/coupons")
+      .send({ code: "dup", discountType: "PERCENTAGE", discountValue: 20 })
+      .expect(409);
+
+    expect(response.body.message).toMatch(/unique/i);
   });
 
   it("gets a coupon by id", async () => {
