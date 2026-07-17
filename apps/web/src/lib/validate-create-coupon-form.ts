@@ -1,5 +1,5 @@
 import type { DiscountType } from "@audax/contracts";
-import { reaisToCents } from "./money";
+import { assertMoneyCentsWithinLimit, reaisToCents } from "./money";
 
 export type CreateCouponFormInput = {
   code: string;
@@ -37,14 +37,19 @@ export function validateCreateCouponForm(
       throw new Error("O valor percentual deve ser um inteiro entre 1 e 100");
     }
 
+    const minOrderAmount =
+      form.minOrderAmount.trim() === ""
+        ? undefined
+        : reaisToCents(form.minOrderAmount);
+    if (minOrderAmount !== undefined) {
+      assertMoneyCentsWithinLimit(minOrderAmount);
+    }
+
     return {
       code,
       discountType: "PERCENTAGE",
       discountValue,
-      minOrderAmount:
-        form.minOrderAmount.trim() === ""
-          ? undefined
-          : reaisToCents(form.minOrderAmount),
+      minOrderAmount,
     };
   }
 
@@ -54,12 +59,14 @@ export function validateCreateCouponForm(
       "O valor do desconto fixo deve ser um inteiro estritamente positivo",
     );
   }
+  assertMoneyCentsWithinLimit(discountValue);
 
   if (form.minOrderAmount.trim() === "") {
     throw new Error("Desconto fixo exige um valor mínimo de pedido");
   }
 
   const minOrderAmount = reaisToCents(form.minOrderAmount);
+  assertMoneyCentsWithinLimit(minOrderAmount);
   if (minOrderAmount < discountValue) {
     throw new Error(
       "O valor mínimo do pedido deve ser maior ou igual ao valor do desconto fixo",
