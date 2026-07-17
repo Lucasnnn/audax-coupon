@@ -261,7 +261,9 @@ export default function CouponsPage() {
         <div className={styles.listHeader}>
           <h2>Lista</h2>
           {!loading && total > 0 ? (
-            <p className={styles.listCount}>{total} cupom{total === 1 ? "" : "ns"}</p>
+            <p className={styles.listCount}>
+              {total} {total === 1 ? "cupom" : "cupons"}
+            </p>
           ) : null}
         </div>
         {loading ? <p className={styles.muted}>Carregando...</p> : null}
@@ -297,7 +299,7 @@ export default function CouponsPage() {
                       ) : null}
                       <li>
                         {coupon.usageCount === 0
-                          ? "sem usos"
+                          ? "sem uso"
                           : `${coupon.usageCount} uso${coupon.usageCount === 1 ? "" : "s"}`}
                       </li>
                     </ul>
