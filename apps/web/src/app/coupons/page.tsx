@@ -194,17 +194,22 @@ export default function CouponsPage() {
         <h2>Novo cupom</h2>
         <form className={styles.form} onSubmit={onSubmit}>
           <label>
-            Código
+            <span className={styles.fieldLabel}>
+              Código <span className={styles.requiredMark} aria-hidden="true">*</span>
+            </span>
             <input
               value={form.code}
               onChange={(e) => setForm({ ...form, code: e.target.value })}
               placeholder="BLACKFRIDAY10"
               required
+              aria-required="true"
             />
           </label>
 
           <label className={styles.discountField}>
-            Desconto
+            <span className={styles.fieldLabel}>
+              Desconto <span className={styles.requiredMark} aria-hidden="true">*</span>
+            </span>
             <div className={styles.discountControl}>
               <input
                 value={form.discountValue}
@@ -216,6 +221,7 @@ export default function CouponsPage() {
                 }
                 inputMode="decimal"
                 required
+                aria-required="true"
                 aria-label="Valor do desconto"
               />
               <select
@@ -236,20 +242,32 @@ export default function CouponsPage() {
           </label>
 
           <label>
-            Pedido mínimo (R$)
+            <span className={styles.fieldLabel}>
+              Pedido mínimo (R$)
+              {form.discountType === "FIXED" ? (
+                <span className={styles.requiredMark} aria-hidden="true"> *</span>
+              ) : (
+                <span className={styles.optionalMark}> (opcional)</span>
+              )}
+            </span>
             <input
               value={form.minOrderAmount}
               onChange={(e) =>
                 setForm({ ...form, minOrderAmount: e.target.value })
               }
               placeholder={
-                form.discountType === "FIXED" ? "obrigatório, ex.: 50,00" : "opcional"
+                form.discountType === "FIXED" ? "ex.: 50,00" : "ex.: 50,00"
               }
+              required={form.discountType === "FIXED"}
+              aria-required={form.discountType === "FIXED"}
             />
           </label>
 
           <label>
-            Expira em
+            <span className={styles.fieldLabel}>
+              Expira em
+              <span className={styles.optionalMark}> (opcional)</span>
+            </span>
             <input
               type="datetime-local"
               min={minDatetimeLocalToday()}
@@ -380,6 +398,10 @@ export default function CouponsPage() {
                       <button
                         type="button"
                         className={styles.saveExpiration}
+                        disabled={
+                          expirationDraft(coupon) ===
+                          toDatetimeLocalValue(coupon.expiresAt)
+                        }
                         onClick={() => void saveExpiration(coupon)}
                       >
                         Salvar
