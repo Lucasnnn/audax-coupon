@@ -116,38 +116,21 @@
   outline: none;
 }
 
-.discountUnit {
-  display: flex;
+.discountUnitSelect {
   flex-shrink: 0;
-  border-left: 1px solid var(--line);
-  background: #f5f7f9;
-}
-
-.discountUnit button {
-  margin: 0;
-  min-width: 2.75rem;
+  min-width: 4.25rem;
   border: 0 !important;
-  border-radius: 0 !important;
-  padding: 0.55rem 0.7rem !important;
-  background: transparent !important;
-  color: var(--muted);
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.discountUnit button + button {
   border-left: 1px solid var(--line) !important;
-}
-
-.discountUnit button:hover {
+  border-radius: 0 !important;
+  padding: 0.55rem 0.65rem !important;
+  background: #f5f7f9 !important;
   color: var(--ink);
-  background: #eef2f5 !important;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.discountUnitActive {
-  color: var(--accent) !important;
-  background: #e5f3ee !important;
+.discountUnitSelect:focus {
+  outline: none;
 }
 
 .form input[type="datetime-local"] {

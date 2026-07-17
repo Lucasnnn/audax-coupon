@@ -210,38 +210,20 @@ export default function CouponsPage() {
                 required
                 aria-label="Valor do desconto"
               />
-              <div
-                className={styles.discountUnit}
-                role="group"
+              <select
+                className={styles.discountUnitSelect}
+                value={form.discountType}
                 aria-label="Tipo de desconto"
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    discountType: e.target.value as DiscountType,
+                  })
+                }
               >
-                <button
-                  type="button"
-                  className={
-                    form.discountType === "PERCENTAGE"
-                      ? styles.discountUnitActive
-                      : undefined
-                  }
-                  aria-pressed={form.discountType === "PERCENTAGE"}
-                  onClick={() =>
-                    setForm({ ...form, discountType: "PERCENTAGE" })
-                  }
-                >
-                  %
-                </button>
-                <button
-                  type="button"
-                  className={
-                    form.discountType === "FIXED"
-                      ? styles.discountUnitActive
-                      : undefined
-                  }
-                  aria-pressed={form.discountType === "FIXED"}
-                  onClick={() => setForm({ ...form, discountType: "FIXED" })}
-                >
-                  R$
-                </button>
-              </div>
+                <option value="PERCENTAGE">%</option>
+                <option value="FIXED">R$</option>
+              </select>
             </div>
           </label>
 
