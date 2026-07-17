@@ -1,5 +1,6 @@
 import type { CouponStatus, DiscountType } from "../../domain/coupon/coupon.js";
 import type { CouponRepository } from "../../domain/coupon/coupon-repository.js";
+import { assertExpirationNotBeforeToday } from "./expiration-policy.js";
 
 export type UpdateCouponInput = {
   id: string;
@@ -40,6 +41,9 @@ export class UpdateCouponUseCase {
     }
 
     if (input.expiresAt !== undefined) {
+      if (input.expiresAt !== null) {
+        assertExpirationNotBeforeToday(input.expiresAt);
+      }
       coupon.changeExpiration(
         input.expiresAt === null ? undefined : input.expiresAt,
       );

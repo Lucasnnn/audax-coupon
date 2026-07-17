@@ -38,7 +38,7 @@ describe("UpdateCouponUseCase", () => {
       code: "DATE",
       discountType: "PERCENTAGE",
       discountValue: 10,
-      expiresAt: new Date("2026-01-01T00:00:00.000Z"),
+      expiresAt: new Date("2026-12-01T00:00:00.000Z"),
     });
 
     const nextExpiration = new Date("2027-06-01T12:00:00.000Z");
