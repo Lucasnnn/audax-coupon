@@ -1,3 +1,5 @@
+import { CouponErrors } from "../../domain/coupon/coupon-errors.js";
+
 export function assertExpirationNotBeforeToday(
   expiresAt: Date,
   now = new Date(),
@@ -6,7 +8,7 @@ export function assertExpirationNotBeforeToday(
   const today = startOfUtcDay(now);
 
   if (expirationDay < today) {
-    throw new Error("Expiration date cannot be before today");
+    throw new Error(CouponErrors.expirationBeforeToday);
   }
 }
 

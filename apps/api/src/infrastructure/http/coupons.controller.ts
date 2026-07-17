@@ -22,6 +22,7 @@ import {
 } from "../../application/coupon/update-coupon.js";
 import type { Coupon } from "../../domain/coupon/coupon.js";
 import type { CreateCouponProps } from "../../domain/coupon/coupon.js";
+import { CouponErrors } from "../../domain/coupon/coupon-errors.js";
 import type { CouponRepository } from "../../domain/coupon/coupon-repository.js";
 import { mapCouponHttpError } from "./map-coupon-http-error.js";
 import { COUPON_REPOSITORY } from "./tokens.js";
@@ -83,7 +84,7 @@ export class CouponsController {
       const coupon = await this.getCoupon.execute(id);
       return this.toResponse(coupon);
     } catch {
-      throw new NotFoundException("Coupon not found");
+      throw new NotFoundException(CouponErrors.notFound);
     }
   }
 

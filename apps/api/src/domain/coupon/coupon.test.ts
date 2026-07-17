@@ -24,7 +24,7 @@ describe("Coupon", () => {
         discountType: "PERCENTAGE",
         discountValue: 0,
       }),
-    ).toThrow(/percentage/i);
+    ).toThrow(/percentual/i);
   });
 
   it("rejects a fixed coupon without a min order amount", () => {
@@ -34,7 +34,7 @@ describe("Coupon", () => {
         discountType: "FIXED",
         discountValue: 1500,
       }),
-    ).toThrow(/min order amount/i);
+    ).toThrow(/valor mínimo de pedido/i);
   });
 
   it("rejects a fixed coupon when min order amount is below the discount value", () => {
@@ -45,7 +45,7 @@ describe("Coupon", () => {
         discountValue: 1500,
         minOrderAmount: 1499,
       }),
-    ).toThrow(/min order amount/i);
+    ).toThrow(/valor mínimo do pedido/i);
   });
 
   it("rejects an empty coupon code", () => {
@@ -55,7 +55,7 @@ describe("Coupon", () => {
         discountType: "PERCENTAGE",
         discountValue: 10,
       }),
-    ).toThrow(/coupon code/i);
+    ).toThrow(/código do cupom não pode ser vazio/i);
   });
 
   it("deactivates an active coupon", () => {

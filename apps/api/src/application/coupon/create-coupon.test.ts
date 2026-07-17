@@ -37,7 +37,7 @@ describe("CreateCouponUseCase", () => {
         discountType: "PERCENTAGE",
         discountValue: 15,
       }),
-    ).rejects.toThrow(/coupon code/i);
+    ).rejects.toThrow(/deve ser único/i);
   });
 
   it("preserves expiration date on create", async () => {
@@ -69,6 +69,6 @@ describe("CreateCouponUseCase", () => {
         discountValue: 10,
         expiresAt: new Date("2020-01-01T00:00:00.000Z"),
       }),
-    ).rejects.toThrow(/expiration date cannot be before today/i);
+    ).rejects.toThrow(/data de expiração não pode ser anterior a hoje/i);
   });
 });

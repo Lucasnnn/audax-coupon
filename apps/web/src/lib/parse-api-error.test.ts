@@ -7,11 +7,11 @@ describe("parseApiErrorMessage", () => {
       parseApiErrorMessage(
         JSON.stringify({
           statusCode: 400,
-          message: "Expiration date cannot be before today",
+          message: "A data de expiração não pode ser anterior a hoje",
           error: "Bad Request",
         }),
       ),
-    ).toBe("Expiration date cannot be before today");
+    ).toBe("A data de expiração não pode ser anterior a hoje");
   });
 
   it("falls back to the raw text when the body is not NestJS JSON", () => {
@@ -23,9 +23,9 @@ describe("parseApiErrorMessage", () => {
       parseApiErrorMessage(
         JSON.stringify({
           statusCode: 400,
-          message: ["code must be a string", "discountValue must be a number"],
+          message: ["código inválido", "valor do desconto inválido"],
         }),
       ),
-    ).toBe("code must be a string; discountValue must be a number");
+    ).toBe("código inválido; valor do desconto inválido");
   });
 });

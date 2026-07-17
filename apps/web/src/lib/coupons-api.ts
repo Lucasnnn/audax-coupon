@@ -20,7 +20,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!response.ok) {
     const text = await response.text();
     throw new Error(
-      parseApiErrorMessage(text) || `Request failed with ${response.status}`,
+      parseApiErrorMessage(text) || `Falha na requisição (${response.status})`,
     );
   }
 

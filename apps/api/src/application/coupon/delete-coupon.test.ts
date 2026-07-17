@@ -20,7 +20,7 @@ describe("DeleteCouponUseCase", () => {
 
     await deleteCoupon.execute(created.id);
 
-    await expect(getCoupon.execute(created.id)).rejects.toThrow(/not found/i);
+    await expect(getCoupon.execute(created.id)).rejects.toThrow(/não encontrado/i);
   });
 
   it("rejects deleting a coupon that has already been used", async () => {
@@ -40,7 +40,7 @@ describe("DeleteCouponUseCase", () => {
     await repository.save(used);
 
     await expect(deleteCoupon.execute(used.id)).rejects.toThrow(
-      /cannot be deleted/i,
+      /não podem ser excluídos/i,
     );
   });
 });

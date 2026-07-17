@@ -25,7 +25,7 @@ describe("GetCouponUseCase", () => {
 
     await expect(
       getCoupon.execute("00000000-0000-0000-0000-000000000000"),
-    ).rejects.toThrow(/not found/i);
+    ).rejects.toThrow(/não encontrado/i);
   });
 
 });

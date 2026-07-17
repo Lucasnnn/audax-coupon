@@ -1,4 +1,5 @@
 import type { CouponStatus, DiscountType } from "../../domain/coupon/coupon.js";
+import { CouponErrors } from "../../domain/coupon/coupon-errors.js";
 import type { CouponRepository } from "../../domain/coupon/coupon-repository.js";
 import { assertExpirationNotBeforeToday } from "./expiration-policy.js";
 
@@ -17,7 +18,7 @@ export class UpdateCouponUseCase {
   async execute(input: UpdateCouponInput): Promise<void> {
     const coupon = await this.repository.findById(input.id);
     if (!coupon) {
-      throw new Error("Coupon not found");
+      throw new Error(CouponErrors.notFound);
     }
 
     if (input.status === "INACTIVE") {
@@ -29,9 +30,7 @@ export class UpdateCouponUseCase {
 
     if (input.discountType !== undefined && input.discountValue !== undefined) {
       if (coupon.usageCount > 0) {
-        throw new Error(
-          "Discount type and value cannot change after the coupon has been used",
-        );
+        throw new Error(CouponErrors.usedCannotChangeDiscount);
       }
       coupon.changeDiscount({
         discountType: input.discountType,

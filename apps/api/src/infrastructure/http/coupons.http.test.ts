@@ -62,7 +62,9 @@ describe("Coupons HTTP", () => {
       })
       .expect(400);
 
-    expect(response.body.message).toMatch(/expiration date cannot be before today/i);
+    expect(response.body.message).toMatch(
+      /data de expiração não pode ser anterior a hoje/i,
+    );
   });
 
   it("rejects creating a coupon with an invalid percentage", async () => {
@@ -75,7 +77,7 @@ describe("Coupons HTTP", () => {
       })
       .expect(400);
 
-    expect(response.body.message).toMatch(/percentage/i);
+    expect(response.body.message).toMatch(/percentual/i);
   });
 
   it("rejects creating a coupon with a duplicated code", async () => {
@@ -89,7 +91,7 @@ describe("Coupons HTTP", () => {
       .send({ code: "dup", discountType: "PERCENTAGE", discountValue: 20 })
       .expect(409);
 
-    expect(response.body.message).toMatch(/unique/i);
+    expect(response.body.message).toMatch(/único/i);
   });
 
   it("gets a coupon by id", async () => {

@@ -102,7 +102,7 @@ describe("UpdateCouponUseCase", () => {
         discountType: "PERCENTAGE",
         discountValue: 20,
       }),
-    ).rejects.toThrow(/discount/i);
+    ).rejects.toThrow(/desconto não podem ser alterados/i);
   });
 
   it("rejects updating expiration to a date before today", async () => {
@@ -121,6 +121,6 @@ describe("UpdateCouponUseCase", () => {
         id: created.id,
         expiresAt: new Date("2020-06-01T00:00:00.000Z"),
       }),
-    ).rejects.toThrow(/expiration date cannot be before today/i);
+    ).rejects.toThrow(/data de expiração não pode ser anterior a hoje/i);
   });
 });

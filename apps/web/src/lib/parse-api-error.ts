@@ -1,8 +1,8 @@
 export function parseApiErrorMessage(body: string): string {
   const trimmed = body.trim();
   if (trimmed === "") {
-    return "Request failed";
-  }
+  return "Falha na requisição";
+}
 
   try {
     const parsed = JSON.parse(trimmed) as {

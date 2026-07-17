@@ -48,7 +48,7 @@ export default function CouponsPage() {
       setCoupons(page.items);
       setTotal(page.total);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load coupons");
+      setError(err instanceof Error ? err.message : "Falha ao carregar cupons");
     } finally {
       setLoading(false);
     }
@@ -74,25 +74,25 @@ export default function CouponsPage() {
           : reaisToCents(form.minOrderAmount);
 
       if (!form.code.trim()) {
-        throw new Error("Coupon code is required");
+        throw new Error("O código do cupom é obrigatório");
       }
       if (
         form.discountType === "PERCENTAGE" &&
         !Number.isFinite(discountValue)
       ) {
-        throw new Error("Discount value must be a number");
+        throw new Error("O valor do desconto deve ser um número");
       }
       if (
         form.discountType === "FIXED" &&
         (minOrderAmount === undefined || !Number.isFinite(minOrderAmount))
       ) {
-        throw new Error("Fixed coupons require a min order amount in reais");
+        throw new Error("Desconto fixo exige um valor mínimo de pedido");
       }
       if (
         form.expiresAt.trim() !== "" &&
         !isExpirationNotBeforeToday(form.expiresAt)
       ) {
-        throw new Error("Expiration date cannot be before today");
+        throw new Error("A data de expiração não pode ser anterior a hoje");
       }
 
       await couponsApi.create({
@@ -109,7 +109,7 @@ export default function CouponsPage() {
       setForm(emptyForm);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create coupon");
+      setError(err instanceof Error ? err.message : "Falha ao criar cupom");
     } finally {
       setSubmitting(false);
     }
@@ -123,14 +123,14 @@ export default function CouponsPage() {
       });
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update coupon");
+      setError(err instanceof Error ? err.message : "Falha ao atualizar cupom");
     }
   }
 
   async function removeCoupon(coupon: CouponDto) {
     setError(null);
     if (!canDeleteCoupon(coupon.usageCount)) {
-      setError("Cupons já utilizados não podem ser removidos");
+      setError("Cupons já utilizados não podem ser excluídos");
       setCouponPendingDelete(null);
       return;
     }
@@ -140,7 +140,7 @@ export default function CouponsPage() {
       setCouponPendingDelete(null);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete coupon");
+      setError(err instanceof Error ? err.message : "Falha ao excluir cupom");
     } finally {
       setDeleting(false);
     }
@@ -157,7 +157,7 @@ export default function CouponsPage() {
     try {
       const draft = expirationDraft(coupon).trim();
       if (draft !== "" && !isExpirationNotBeforeToday(draft)) {
-        throw new Error("Expiration date cannot be before today");
+        throw new Error("A data de expiração não pode ser anterior a hoje");
       }
       await couponsApi.update(coupon.id, {
         expiresAt: draft === "" ? null : new Date(draft).toISOString(),
@@ -170,7 +170,7 @@ export default function CouponsPage() {
       await load();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to update expiration",
+        err instanceof Error ? err.message : "Falha ao atualizar expiração",
       );
     }
   }

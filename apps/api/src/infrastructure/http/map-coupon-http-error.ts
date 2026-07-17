@@ -3,20 +3,21 @@ import {
   ConflictException,
   NotFoundException,
 } from "@nestjs/common";
+import { CouponErrors } from "../../domain/coupon/coupon-errors.js";
 
 export function mapCouponHttpError(error: unknown): never {
   if (!(error instanceof Error)) {
     throw error;
   }
 
-  if (/not found/i.test(error.message)) {
-    throw new NotFoundException("Coupon not found");
+  if (error.message === CouponErrors.notFound) {
+    throw new NotFoundException(CouponErrors.notFound);
   }
 
   if (
-    /unique/i.test(error.message) ||
-    /cannot be deleted/i.test(error.message) ||
-    /cannot change after the coupon has been used/i.test(error.message)
+    error.message === CouponErrors.codeUnique ||
+    error.message === CouponErrors.usedCannotDelete ||
+    error.message === CouponErrors.usedCannotChangeDiscount
   ) {
     throw new ConflictException(error.message);
   }
