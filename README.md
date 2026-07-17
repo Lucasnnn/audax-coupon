@@ -17,7 +17,7 @@ pnpm install
 cp .env.example .env
 ```
 
-O `.env` na raiz é lido pela API automaticamente. No Windows não é necessário `source` / export manual.
+O `.env` na raiz é compartilhado: API (`main.ts`), seed/migrate e o Next (`next.config.ts`) carregam esse arquivo. No Windows não é necessário `source` / export manual.
 
 | Variável | Uso |
 |----------|-----|
