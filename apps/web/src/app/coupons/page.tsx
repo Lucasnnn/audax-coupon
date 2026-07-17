@@ -228,7 +228,7 @@ export default function CouponsPage() {
           </label>
 
           <label>
-            Min. pedido (R$)
+            Pedido mínimo (R$)
             <input
               value={form.minOrderAmount}
               onChange={(e) =>
