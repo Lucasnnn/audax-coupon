@@ -27,6 +27,11 @@ export class UpdateCouponUseCase {
     }
 
     if (input.discountType !== undefined && input.discountValue !== undefined) {
+      if (coupon.usageCount > 0) {
+        throw new Error(
+          "Discount type and value cannot change after the coupon has been used",
+        );
+      }
       coupon.changeDiscount({
         discountType: input.discountType,
         discountValue: input.discountValue,
