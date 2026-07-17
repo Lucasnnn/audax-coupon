@@ -285,13 +285,6 @@ export default function CouponsPage() {
                 </p>
               </div>
               <div className={styles.actions}>
-                <span
-                  className={
-                    coupon.status === "ACTIVE" ? styles.badgeOk : styles.badgeOff
-                  }
-                >
-                  {coupon.status}
-                </span>
                 {expired ? (
                   <span className={styles.badgeOff}>EXPIRADO</span>
                 ) : null}
@@ -309,9 +302,6 @@ export default function CouponsPage() {
                     }
                   />
                 </label>
-                <button type="button" onClick={() => void saveExpiration(coupon)}>
-                  Salvar expiração
-                </button>
                 <button type="button" onClick={() => void saveExpiration(coupon)}>
                   Salvar expiração
                 </button>
