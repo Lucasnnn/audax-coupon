@@ -23,6 +23,12 @@ import {
   sanitizePositiveIntegerInput,
 } from "@/lib/numeric-input";
 import { validateCreateCouponForm } from "@/lib/validate-create-coupon-form";
+import {
+  defaultCouponListFilters,
+  type CouponListFilters,
+  type ExpirationFilter,
+  type StatusFilter,
+} from "@/lib/filter-coupons";
 import styles from "./coupons.module.css";
 
 const PAGE_SIZE = 10;
@@ -54,6 +60,14 @@ export default function CouponsPage() {
   const [couponPendingDelete, setCouponPendingDelete] =
     useState<CouponDto | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [mutating, setMutating] = useState(false);
+  const [filters, setFilters] = useState<CouponListFilters>(
+    defaultCouponListFilters,
+  );
+  const [filterDraft, setFilterDraft] = useState<CouponListFilters>(
+    defaultCouponListFilters,
+  );
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const listSectionRef = useRef<HTMLElement>(null);
   const skipListScrollRef = useRef(true);
 
@@ -61,17 +75,27 @@ export default function CouponsPage() {
     items: coupons,
     total,
     loadedCount,
+    sourceCount,
     truncated,
     loading,
     error: loadError,
-  } = useCouponsPage(page, PAGE_SIZE);
+  } = useCouponsPage(page, PAGE_SIZE, filters);
 
   const totalPages = Math.max(1, Math.ceil(loadedCount / PAGE_SIZE));
   const error = actionError ?? loadError;
+  const busy = loading || submitting || deleting || mutating;
+  const filtersActive =
+    filters.status !== "ALL" ||
+    filters.expiration !== "ALL" ||
+    filters.codeQuery.trim() !== "";
 
   useEffect(() => {
     void couponsStore.load();
   }, []);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filters.status, filters.expiration, filters.codeQuery]);
 
   useEffect(() => {
     if (loadedCount > 0 && page > totalPages) {
@@ -123,6 +147,7 @@ export default function CouponsPage() {
 
   async function toggleStatus(coupon: CouponDto) {
     setActionError(null);
+    setMutating(true);
     try {
       const updated = await couponsApi.update(coupon.id, {
         status: coupon.status === "ACTIVE" ? "INACTIVE" : "ACTIVE",
@@ -132,6 +157,8 @@ export default function CouponsPage() {
       setActionError(
         err instanceof Error ? err.message : "Falha ao atualizar cupom",
       );
+    } finally {
+      setMutating(false);
     }
   }
 
@@ -165,6 +192,7 @@ export default function CouponsPage() {
 
   async function saveExpiration(coupon: CouponDto) {
     setActionError(null);
+    setMutating(true);
     try {
       if (!canChangeExpiration(coupon.expiresAt)) {
         throw new Error(
@@ -188,11 +216,23 @@ export default function CouponsPage() {
       setActionError(
         err instanceof Error ? err.message : "Falha ao atualizar expiração",
       );
+    } finally {
+      setMutating(false);
     }
   }
 
   return (
-    <main className={styles.page}>
+    <main className={styles.page} aria-busy={busy}>
+      {busy ? (
+        <div
+          className={styles.progressBar}
+          role="progressbar"
+          aria-label="Carregando"
+          aria-valuetext="Em andamento"
+        >
+          <span className={styles.progressBarIndicator} />
+        </div>
+      ) : null}
       <header className={styles.header}>
         <div>
           <p className={styles.eyebrow}>Audax</p>
@@ -328,25 +368,86 @@ export default function CouponsPage() {
           </label>
 
           <button type="submit" disabled={submitting}>
-            {submitting ? "Salvando..." : "Criar cupom"}
+            {submitting ? (
+              <span className={styles.buttonBusy}>
+                <span className={styles.spinner} aria-hidden="true" />
+                Salvando…
+              </span>
+            ) : (
+              "Criar cupom"
+            )}
           </button>
         </form>
       </section>
 
       <section className={styles.panel} ref={listSectionRef}>
         <div className={styles.listHeader}>
-          <h2>Lista</h2>
-          {!loading && total > 0 ? (
+          <div className={styles.listTitleRow}>
+            <h2>Lista</h2>
+            <button
+              type="button"
+              className={`${styles.filterIconButton}${filtersActive ? ` ${styles.filterIconButtonActive}` : ""}`}
+              aria-label={
+                filtersActive ? "Abrir filtros (ativos)" : "Abrir filtros"
+              }
+              title="Filtros"
+              onClick={() => {
+                setFilterDraft(filters);
+                setFiltersOpen(true);
+              }}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M4 6h16" />
+                <path d="M7 12h10" />
+                <path d="M10 18h4" />
+              </svg>
+              {filtersActive ? (
+                <span className={styles.filterBadge} aria-hidden="true" />
+              ) : null}
+            </button>
+          </div>
+          {!loading && sourceCount > 0 ? (
             <p className={styles.listCount}>
-              Página {page} de {totalPages} · {total}{" "}
-              {total === 1 ? "cupom" : "cupons"}
-              {truncated ? ` (carregados ${loadedCount})` : ""}
+              Página {page} de {totalPages} ·{" "}
+              {filtersActive ? (
+                <>
+                  {loadedCount}{" "}
+                  {loadedCount === 1 ? "filtrado" : "filtrados"} · {sourceCount}{" "}
+                  carregados
+                </>
+              ) : (
+                <>
+                  {total} {total === 1 ? "cupom" : "cupons"}
+                  {truncated ? ` (carregados ${loadedCount})` : ""}
+                </>
+              )}
             </p>
           ) : null}
         </div>
-        {loading ? <p className={styles.muted}>Carregando...</p> : null}
-        {!loading && coupons.length === 0 ? (
+
+        {loading ? (
+          <div className={styles.loadingState} role="status" aria-live="polite">
+            <span className={styles.spinner} aria-hidden="true" />
+            <span>Carregando cupons…</span>
+          </div>
+        ) : null}
+        {!loading && sourceCount === 0 ? (
           <p className={styles.empty}>Nenhum cupom ainda. Crie o primeiro acima.</p>
+        ) : null}
+        {!loading && sourceCount > 0 && coupons.length === 0 ? (
+          <p className={styles.empty}>
+            Nenhum cupom corresponde aos filtros.
+          </p>
         ) : null}
         <ul className={styles.list}>
           {coupons.map((coupon) => {
@@ -496,6 +597,97 @@ export default function CouponsPage() {
           </nav>
         ) : null}
       </section>
+      {filtersOpen ? (
+        <div
+          className={styles.dialogBackdrop}
+          role="presentation"
+          onClick={() => setFiltersOpen(false)}
+        >
+          <div
+            className={styles.dialog}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="filters-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h3 id="filters-title">Filtros</h3>
+            <div className={styles.filterModalFields} role="search">
+              <label className={styles.filterField}>
+                <span>Código</span>
+                <input
+                  value={filterDraft.codeQuery}
+                  onChange={(e) =>
+                    setFilterDraft((current) => ({
+                      ...current,
+                      codeQuery: e.target.value,
+                    }))
+                  }
+                  placeholder="Buscar código"
+                  aria-label="Filtrar por código do cupom"
+                  autoFocus
+                />
+              </label>
+              <label className={styles.filterField}>
+                <span>Status</span>
+                <select
+                  value={filterDraft.status}
+                  onChange={(e) =>
+                    setFilterDraft((current) => ({
+                      ...current,
+                      status: e.target.value as StatusFilter,
+                    }))
+                  }
+                  aria-label="Filtrar por status"
+                >
+                  <option value="ALL">Todos</option>
+                  <option value="ACTIVE">Ativos</option>
+                  <option value="INACTIVE">Inativos</option>
+                </select>
+              </label>
+              <label className={styles.filterField}>
+                <span>Expiração</span>
+                <select
+                  value={filterDraft.expiration}
+                  onChange={(e) =>
+                    setFilterDraft((current) => ({
+                      ...current,
+                      expiration: e.target.value as ExpirationFilter,
+                    }))
+                  }
+                  aria-label="Filtrar por expiração"
+                >
+                  <option value="ALL">Todas</option>
+                  <option value="EXPIRED">Expirados</option>
+                  <option value="NO_EXPIRATION">Sem data</option>
+                </select>
+              </label>
+            </div>
+            <div className={styles.dialogActions}>
+              <button
+                type="button"
+                className={styles.dialogCancel}
+                onClick={() => {
+                  setFilterDraft(defaultCouponListFilters);
+                  setFilters(defaultCouponListFilters);
+                  setFiltersOpen(false);
+                }}
+              >
+                Limpar
+              </button>
+              <button
+                type="button"
+                className={styles.dialogPrimary}
+                onClick={() => {
+                  setFilters(filterDraft);
+                  setFiltersOpen(false);
+                }}
+              >
+                Aplicar
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
       {couponPendingDelete ? (
         <div
           className={styles.dialogBackdrop}
@@ -537,7 +729,14 @@ export default function CouponsPage() {
                     disabled={deleting}
                     onClick={() => void removeCoupon(couponPendingDelete)}
                   >
-                    {deleting ? "Excluindo..." : "Excluir"}
+                    {deleting ? (
+                      <span className={styles.buttonBusy}>
+                        <span className={styles.spinner} aria-hidden="true" />
+                        Excluindo…
+                      </span>
+                    ) : (
+                      "Excluir"
+                    )}
                   </button>
                 </div>
               </>

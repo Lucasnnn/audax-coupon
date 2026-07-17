@@ -16,7 +16,7 @@
   color: var(--page-ink);
 }
 
-.page > * {
+.page > *:not(.dialogBackdrop):not(.progressBar) {
   width: 100%;
   max-width: 960px;
 }
@@ -52,6 +52,68 @@
 
 .muted {
   color: var(--muted);
+}
+
+.progressBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  width: 100vw;
+  max-width: none;
+  height: 3px;
+  overflow: hidden;
+  pointer-events: none;
+  background: rgb(26 155 114 / 18%);
+}
+
+.progressBarIndicator {
+  display: block;
+  height: 100%;
+  width: 35%;
+  border-radius: 0 2px 2px 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--accent) 40%,
+    #3ecf9a 100%
+  );
+  animation: progressIndeterminate 1.15s ease-in-out infinite;
+}
+
+@keyframes progressIndeterminate {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+.loadingState {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.35rem 0 1rem;
+  padding: 1.1rem 0.25rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.spinner {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex-shrink: 0;
+  border: 2px solid rgb(26 155 114 / 25%);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .meta {
@@ -275,6 +337,21 @@
   cursor: wait;
 }
 
+.buttonBusy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.buttonBusy .spinner {
+  width: 0.95rem;
+  height: 0.95rem;
+  border-width: 2px;
+  border-color: rgb(255 255 255 / 35%);
+  border-top-color: currentColor;
+}
+
 .listHeader {
   display: flex;
   align-items: baseline;
@@ -283,10 +360,88 @@
   margin-bottom: 0.35rem;
 }
 
+.listTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.listTitleRow h2 {
+  margin: 0;
+}
+
 .listCount {
   margin: 0;
   font-size: 0.85rem;
   color: var(--muted);
+}
+
+.filterIconButton {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.15rem;
+  height: 2.15rem;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--control);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.filterIconButton:hover {
+  color: var(--ink);
+  border-color: var(--accent);
+}
+
+.filterIconButtonActive {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.filterBadge {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+.filterModalFields {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.filterField {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.filterField input,
+.filterField select {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.55rem 0.7rem;
+  background: var(--control);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.filterField input:focus,
+.filterField select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 .pagination {
@@ -660,6 +815,8 @@
   display: grid;
   place-items: center;
   padding: 1.25rem;
+  width: 100vw;
+  max-width: none;
   background: rgb(0 0 0 / 55%);
 }
 
@@ -697,7 +854,8 @@
 }
 
 .dialogCancel,
-.dialogConfirm {
+.dialogConfirm,
+.dialogPrimary {
   border-radius: 8px;
   padding: 0.6rem 0.95rem;
   cursor: pointer;
@@ -722,6 +880,17 @@
 
 .dialogConfirm:hover:not(:disabled) {
   filter: brightness(0.95);
+}
+
+.dialogPrimary {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.dialogPrimary:hover:not(:disabled) {
+  filter: brightness(1.06);
 }
 
 .dialogCancel:disabled,
@@ -757,5 +926,18 @@
     width: auto;
     border-left: 1px solid var(--line);
     border-top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progressBarIndicator,
+  .spinner {
+    animation: none;
+  }
+
+  .progressBarIndicator {
+    width: 100%;
+    transform: none;
+    opacity: 0.85;
   }
 }
