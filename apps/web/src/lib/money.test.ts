@@ -7,6 +7,7 @@ describe("money", () => {
     expect(reaisToCents("15.50")).toBe(1550);
     expect(reaisToCents("15,50")).toBe(1550);
     expect(reaisToCents("0.01")).toBe(1);
+    expect(reaisToCents("1.234,56")).toBe(123456);
   });
 
   it("formats cents as reais for the UI", () => {
