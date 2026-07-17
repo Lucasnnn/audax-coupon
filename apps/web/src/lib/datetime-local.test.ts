@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { formatExpirationDisplay } from "./datetime-local";
+import {
+  formatExpirationDisplay,
+  minDatetimeLocalToday,
+  toDatetimeLocalValue,
+} from "./datetime-local";
 
 describe("formatExpirationDisplay", () => {
   it("formats ISO as DD/MM/AAAA in local time", () => {
@@ -13,5 +17,16 @@ describe("formatExpirationDisplay", () => {
 
   it("returns empty string for null", () => {
     expect(formatExpirationDisplay(null)).toBe("");
+  });
+});
+
+describe("minDatetimeLocalToday", () => {
+  it("uses the start of the current UTC calendar day", () => {
+    const now = new Date("2026-07-17T02:00:00.000Z");
+    const startOfUtcToday = new Date(Date.UTC(2026, 6, 17));
+
+    expect(minDatetimeLocalToday(now)).toBe(
+      toDatetimeLocalValue(startOfUtcToday.toISOString()),
+    );
   });
 });
