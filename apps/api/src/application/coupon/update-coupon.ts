@@ -34,6 +34,12 @@ export class UpdateCouponUseCase {
       });
     }
 
+    if (input.expiresAt !== undefined) {
+      coupon.changeExpiration(
+        input.expiresAt === null ? undefined : input.expiresAt,
+      );
+    }
+
     await this.repository.save(coupon);
   }
 }
