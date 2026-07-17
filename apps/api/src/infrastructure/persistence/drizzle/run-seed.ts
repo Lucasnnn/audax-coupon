@@ -1,8 +1,11 @@
 import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import "dotenv/config";
+import { config as loadEnv } from "dotenv";
 import postgres from "postgres";
+
+loadEnv({ path: resolve(process.cwd(), "../../.env") });
+loadEnv({ path: resolve(process.cwd(), ".env") });
 
 async function main(): Promise<void> {
   const databaseUrl = process.env.DATABASE_URL;

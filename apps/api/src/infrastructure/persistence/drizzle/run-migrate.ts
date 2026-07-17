@@ -1,5 +1,9 @@
-import "dotenv/config";
+import { config as loadEnv } from "dotenv";
+import { resolve } from "node:path";
 import { ensureCouponSchema } from "./ensure-schema.js";
+
+loadEnv({ path: resolve(process.cwd(), "../../.env") });
+loadEnv({ path: resolve(process.cwd(), ".env") });
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {

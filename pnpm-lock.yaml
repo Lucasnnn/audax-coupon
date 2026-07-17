@@ -20,6 +20,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@audax/contracts':
+        specifier: workspace:^
+        version: link:../../packages/contracts
       '@nestjs/common':
         specifier: ^11.1.28
         version: 11.1.28(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -112,6 +115,9 @@ importers:
       '@types/react-dom':
         specifier: ^19
         version: 19.2.3(@types/react@19.2.17)
+      dotenv:
+        specifier: ^17.4.2
+        version: 17.4.2
       eslint:
         specifier: ^9
         version: 9.39.5
