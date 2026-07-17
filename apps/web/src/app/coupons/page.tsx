@@ -36,6 +36,9 @@ export default function CouponsPage() {
   const [expirationDrafts, setExpirationDrafts] = useState<
     Record<string, string>
   >({});
+  const [couponPendingDelete, setCouponPendingDelete] =
+    useState<CouponDto | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -128,13 +131,18 @@ export default function CouponsPage() {
     setError(null);
     if (!canDeleteCoupon(coupon.usageCount)) {
       setError("Cupons já utilizados não podem ser removidos");
+      setCouponPendingDelete(null);
       return;
     }
+    setDeleting(true);
     try {
       await couponsApi.remove(coupon.id);
+      setCouponPendingDelete(null);
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete coupon");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -330,7 +338,7 @@ export default function CouponsPage() {
                         className={styles.iconDanger}
                         aria-label="Remover cupom"
                         title="Remover"
-                        onClick={() => void removeCoupon(coupon)}
+                        onClick={() => setCouponPendingDelete(coupon)}
                       >
                         <svg
                           viewBox="0 0 24 24"
@@ -384,6 +392,52 @@ export default function CouponsPage() {
           })}
         </ul>
       </section>
+
+      {couponPendingDelete ? (
+        <div
+          className={styles.dialogBackdrop}
+          role="presentation"
+          onClick={() => {
+            if (!deleting) {
+              setCouponPendingDelete(null);
+            }
+          }}
+        >
+          <div
+            className={styles.dialog}
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="delete-coupon-title"
+            aria-describedby="delete-coupon-desc"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h3 id="delete-coupon-title">Excluir cupom?</h3>
+            <p id="delete-coupon-desc">
+              Tem certeza que deseja excluir o cupom{" "}
+              <strong>{couponPendingDelete.code}</strong>? Essa ação não pode
+              ser desfeita.
+            </p>
+            <div className={styles.dialogActions}>
+              <button
+                type="button"
+                className={styles.dialogCancel}
+                disabled={deleting}
+                onClick={() => setCouponPendingDelete(null)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className={styles.dialogConfirm}
+                disabled={deleting}
+                onClick={() => void removeCoupon(couponPendingDelete)}
+              >
+                {deleting ? "Excluindo..." : "Excluir"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }
