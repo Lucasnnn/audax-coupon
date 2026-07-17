@@ -143,4 +143,33 @@ describe("Coupons HTTP", () => {
       .delete(`/coupons/${used.id}`)
       .expect(409);
   });
+
+  it("updates status and expiration of a used coupon", async () => {
+    const { COUPON_REPOSITORY } = await import("./tokens.js");
+    const { Coupon } = await import("../../domain/coupon/coupon.js");
+    const repository = app.get(COUPON_REPOSITORY);
+
+    const used = Coupon.reconstitute({
+      id: "33333333-3333-3333-3333-333333333333",
+      code: "USEDEXP",
+      discountType: "PERCENTAGE",
+      discountValue: 10,
+      status: "ACTIVE",
+      usageCount: 2,
+      minOrderAmount: undefined,
+      expiresAt: undefined,
+    });
+    await repository.save(used);
+
+    const response = await request(app.getHttpServer())
+      .patch(`/coupons/${used.id}`)
+      .send({
+        status: "INACTIVE",
+        expiresAt: "2027-06-01T12:00:00.000Z",
+      })
+      .expect(200);
+
+    expect(response.body.status).toBe("INACTIVE");
+    expect(response.body.expiresAt).toBe("2027-06-01T12:00:00.000Z");
+  });
 });
