@@ -1,16 +1,24 @@
 :root {
-  --bg: #f4f6f8;
-  --surface: #ffffff;
-  --ink: #15202b;
-  --muted: #5b6b7c;
-  --line: #d7dee7;
-  --accent: #0f6e56;
+  color-scheme: dark;
+  --bg: #0b1612;
+  --surface: #13241c;
+  --surface-elevated: #1a3026;
+  --ink: #e8f2ec;
+  --muted: #8fad9d;
+  --line: #2a4538;
+  --accent: #1a9b72;
   --accent-ink: #ffffff;
-  --danger: #9b1c1c;
-  --danger-bg: #fde8e8;
-  --warn-bg: #fff4e5;
+  --danger: #f07171;
+  --danger-bg: #3a1a1a;
+  --danger-line: #6b3030;
+  --warn-bg: #3a2e14;
+  --warn-ink: #e0b45c;
+  --control: #162a21;
+  --control-muted: #1c3328;
+  --toggle-off: #3a5246;
   --radius: 10px;
   --font: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --focus-ring: rgb(26 155 114 / 28%);
 }
 
 * {
@@ -22,7 +30,7 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100%;
-  background: radial-gradient(circle at top left, #e8eef5 0%, var(--bg) 45%);
+  background: radial-gradient(circle at top left, #12261c 0%, var(--bg) 45%);
   color: var(--ink);
   font-family: var(--font);
 }
@@ -36,4 +44,5 @@ button,
 input,
 select {
   font: inherit;
+  color: inherit;
 }
