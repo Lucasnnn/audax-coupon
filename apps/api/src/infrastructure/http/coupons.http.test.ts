@@ -153,6 +153,12 @@ describe("Coupons HTTP", () => {
     expect(response.body.code).toBe("FINDME");
   });
 
+  it("returns 404 when coupon id does not exist", async () => {
+    await request(app.getHttpServer())
+      .get("/coupons/00000000-0000-0000-0000-000000000000")
+      .expect(404);
+  });
+
   it("lists coupons with pagination", async () => {
     await request(app.getHttpServer())
       .post("/coupons")

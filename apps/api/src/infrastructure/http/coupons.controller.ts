@@ -6,7 +6,6 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
-  NotFoundException,
   Param,
   Patch,
   Post,
@@ -22,7 +21,6 @@ import { GetCouponUseCase } from "../../application/coupon/get-coupon.js";
 import { ListCouponsUseCase } from "../../application/coupon/list-coupons.js";
 import { UpdateCouponUseCase } from "../../application/coupon/update-coupon.js";
 import type { Coupon } from "../../domain/coupon/coupon.js";
-import { CouponErrors } from "../../domain/coupon/coupon-errors.js";
 import {
   createCouponBodySchema,
   listCouponsQuerySchema,
@@ -89,8 +87,8 @@ export class CouponsController {
     try {
       const coupon = await this.getCoupon.execute(id);
       return this.toResponse(coupon);
-    } catch {
-      throw new NotFoundException(CouponErrors.notFound);
+    } catch (error) {
+      mapCouponHttpError(error);
     }
   }
 
