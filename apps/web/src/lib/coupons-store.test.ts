@@ -105,6 +105,50 @@ describe("coupons store helpers", () => {
     expect(snap.truncated).toBe(false);
   });
 
+  it("loadMore marks loadingMore without clearing the list loading flag", async () => {
+    const firstPage = Array.from({ length: 1000 }, (_, index) =>
+      coupon({ id: `p1-${index}`, code: `A${String(index).padStart(4, "0")}` }),
+    );
+    const secondPage = [
+      coupon({ id: "p2-0", code: "B0000", createdAt: "2025-01-01T00:00:00.000Z" }),
+    ];
+    const list = vi.spyOn(couponsApi, "list");
+    list.mockResolvedValueOnce({
+      items: firstPage,
+      total: 1001,
+      page: 1,
+      pageSize: 1000,
+    });
+    let resolveSecond!: (value: {
+      items: CouponDto[];
+      total: number;
+      page: number;
+      pageSize: number;
+    }) => void;
+    list.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveSecond = resolve;
+        }),
+    );
+
+    await couponsStore.load({ force: true });
+    const pending = couponsStore.loadMore();
+    const mid = couponsStore.getSnapshot();
+    expect(mid.loading).toBe(false);
+    expect(mid.loadingMore).toBe(true);
+    expect(mid.items).toHaveLength(1000);
+
+    resolveSecond({
+      items: secondPage,
+      total: 1001,
+      page: 2,
+      pageSize: 1000,
+    });
+    await pending;
+    expect(couponsStore.getSnapshot().loadingMore).toBe(false);
+  });
+
   it("keeps newest coupon at the top on add", () => {
     couponsStore.add(
       coupon({ id: "1", code: "OLD", createdAt: "2026-01-01T00:00:00.000Z" }),
